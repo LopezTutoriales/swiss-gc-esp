@@ -81,7 +81,7 @@ void scanFiles() {
 			}
 		}
 	}
-	print_gecko("Found %i entries\r\n",curDirEntryCount);
+	print_gecko("Encontradas %i entradas\r\n",curDirEntryCount);
 	sortedDirEntries = sortFiles(curDirEntries, curDirEntryCount);
 	for(int i = 0; i < curDirEntryCount; i++) {
 		if(!strcmp(sortedDirEntries[i]->name, curFile.name)) {

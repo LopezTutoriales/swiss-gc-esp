@@ -118,7 +118,7 @@ s32 deviceHandler_GCLoader_setupFile(file_handle* file, file_handle* file2, Exec
 		file_frag *fragList = NULL;
 		u32 numFrags = 0;
 		
-		print_gecko("Save Patch device found\r\n");
+		print_gecko("Dispositivo para guardar Parche encont.\r\n");
 		
 		// Look for patch files, if we find some, open them and add them as fragments
 		file_handle patchFile;
@@ -363,7 +363,7 @@ DEVICEHANDLER_INTERFACE __device_gcloader = {
 	.deviceUniqueId = DEVICE_ID_G,
 	.hwName = "GC Loader",
 	.deviceName = "GC Loader",
-	.deviceDescription = "Supported File System(s): FAT16, FAT32, exFAT",
+	.deviceDescription = "Formato(s) soportado(s): FAT16, FAT32, exFAT",
 	.deviceTexture = {TEX_GCLOADER, 115, 72, 120, 80},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_CONFIG_DEVICE|FEAT_AUTOLOAD_DOL|FEAT_THREAD_SAFE|FEAT_HYPERVISOR|FEAT_PATCHES|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_READ_SPEED|EMU_AUDIO_STREAMING|EMU_MEMCARD,

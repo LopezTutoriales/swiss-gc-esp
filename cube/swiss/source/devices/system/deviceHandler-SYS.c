@@ -477,8 +477,8 @@ char* deviceHandler_SYS_status(file_handle* file) {
 
 DEVICEHANDLER_INTERFACE __device_sys = {
 	.deviceUniqueId = DEVICE_ID_9,
-	.hwName = "Various",
-	.deviceName = "System",
+	.hwName = "Varios",
+	.deviceName = "Sistema",
 	.deviceDescription = "Backup IPL, DSP, DVD, SRAM, ARAM",
 	.deviceTexture = {TEX_SYSTEM, 75, 48, 76, 48},
 	.features = FEAT_READ|FEAT_WRITE,

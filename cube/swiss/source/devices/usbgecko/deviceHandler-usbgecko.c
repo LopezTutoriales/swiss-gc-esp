@@ -47,7 +47,7 @@ s32 deviceHandler_USBGecko_readDir(file_handle* ffile, file_handle** dir, u32 ty
 	concat_path((*dir)[0].name, ffile->name, "..");
 	(*dir)[0].fileAttrib = IS_SPECIAL;
 	
-	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Reading directory"));
+	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Leyendo directorio"));
 	// Read each entry of the directory
 	s32 res = usbgecko_open_dir(ffile->name);
 	if(!res) return -1;
@@ -109,7 +109,7 @@ s32 deviceHandler_USBGecko_setupFile(file_handle* file, file_handle* file2, Exec
 	
 	// Check if there are any fragments in our patch location for this game
 	if(devices[DEVICE_PATCHES] != NULL) {
-		print_gecko("Save Patch device found\r\n");
+		print_gecko("Dispositivo guardar Parches encontrado\r\n");
 		
 		// Look for patch files, if we find some, open them and add them as fragments
 		file_handle patchFile;
@@ -175,7 +175,7 @@ s32 deviceHandler_USBGecko_setupFile(file_handle* file, file_handle* file2, Exec
 
 s32 deviceHandler_USBGecko_init(file_handle* file) {
 	s32 res = 0;
-	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Waiting for PC\205"));
+	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Esperando al PC\205"));
 	if(usb_isgeckoalive(1)) {
 		s32 retries = 1000;
 		
@@ -216,15 +216,15 @@ u32 deviceHandler_USBGecko_emulated() {
 
 char* deviceHandler_USBGecko_status(file_handle* file) {
 	if(file->status == NO_PC)
-		return "Couldn't connect to PC";
+		return "Imposible conectar al PC";
 	return NULL;
 }
 
 DEVICEHANDLER_INTERFACE __device_usbgecko = {
 	.deviceUniqueId = DEVICE_ID_A,
 	.hwName = "USB Gecko",
-	.deviceName = "USB Gecko - Slot B only",
-	.deviceDescription = "Requires PC application to be up",
+	.deviceName = "USB Gecko - Ranura B",
+	.deviceDescription = "Necesita la app del PC funcionando",
 	.deviceTexture = {TEX_USBGECKO, 60, 84, 64, 84},
 	.features = FEAT_READ|FEAT_BOOT_GCM|FEAT_HYPERVISOR,
 	.emulable = EMU_READ,

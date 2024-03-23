@@ -65,7 +65,7 @@ device_info* deviceHandler_FTP_info(file_handle* file) {
 void readDeviceInfoFTP() {
 	struct statvfs buf;
 	memset(&buf, 0, sizeof(statvfs));
-	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Reading filesystem info for ftp:/"));
+	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Leyendo informacion de ftp:/"));
 	int res = statvfs("ftp:/", &buf);
 	initial_FTP_info.freeSpace = !res ? (u64)((u64)buf.f_bfree*(u64)buf.f_bsize):0LL;
 	initial_FTP_info.totalSpace = !res ? (u64)((u64)buf.f_blocks*(u64)buf.f_bsize):0LL;
@@ -252,20 +252,20 @@ bool deviceHandler_FTP_test() {
 char* deviceHandler_FTP_status(file_handle* file) {
 	switch(file->status) {
 		case E_NONET:
-			return "Network has not been initialised";
+			return "Red no iniciada";
 		case E_CHECKCONFIG:
-			return "Check FTP Configuration";
+			return "Chequea Configuracion de FTP";
 		case E_CONNECTFAIL:
-			return "Error connecting to FTP server";
+			return "Error al conectar al servidor FTP";
 	}
 	return NULL;
 }
 
 DEVICEHANDLER_INTERFACE __device_ftp = {
 	.deviceUniqueId = DEVICE_ID_D,
-	.hwName = "Broadband Adapter",
-	.deviceName = "File Transfer Protocol",
-	.deviceDescription = "Configurable via the settings screen",
+	.hwName = "Adaptador Broadband",
+	.deviceName = "FTP",
+	.deviceDescription = "Configurable a traves de los ajustes",
 	.deviceTexture = {TEX_BBA, 140, 64, 140, 64},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_THREAD_SAFE,
 	.location = LOC_SERIAL_PORT_1,

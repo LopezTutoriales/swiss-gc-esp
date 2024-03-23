@@ -73,7 +73,7 @@ void Initialise (void)
 	init_font();
 	DrawInit();
 
-	uiDrawObj_t *progBox = DrawPublish(DrawProgressBar(true, 0, "Initialise DVD\205 (HOLD B if NO DVD Drive)"));
+	uiDrawObj_t *progBox = DrawPublish(DrawProgressBar(true, 0, "Iniciando DVD\205 (MANTEN B si NO HAY DVD)"));
 	while(DVD_GetCmdBlockStatus(&commandBlock) == DVD_STATE_BUSY) {
 		if(DVD_LowGetCoverStatus() == 1) {
 			break;
@@ -85,7 +85,7 @@ void Initialise (void)
 	}
 	if(DVD_GetCmdBlockStatus(&commandBlock) != DVD_STATE_END) {
 		DrawDispose(progBox);
-		progBox = DrawPublish(DrawMessageBox(D_INFO, "No DVD Drive Detected !!"));
+		progBox = DrawPublish(DrawMessageBox(D_INFO, "Unidad DVD no detectada!!"));
 		sleep(2);
 	}
 	DrawDispose(progBox);
@@ -176,16 +176,16 @@ int main(int argc, char *argv[])
 		if(usb_isgeckoalive(1)) {
 			usb_flush(1);
 		}
-		print_gecko("Arena Size: %iKb\r\n",(SYS_GetArena1Hi()-SYS_GetArena1Lo())/1024);
-		print_gecko("DVD Drive Present? %s\r\n",swissSettings.hasDVDDrive?"Yes":"No");
-		print_gecko("GIT Commit: %s\r\n", GITREVISION);
-		print_gecko("GIT Revision: %s\r\n", GITVERSION);
+		print_gecko("Tam. Arena: %iKb\r\n",(SYS_GetArena1Hi()-SYS_GetArena1Lo())/1024);
+		print_gecko("DVD Presente? %s\r\n",swissSettings.hasDVDDrive?"Si":"No");
+		print_gecko("Commit de GIT: %s\r\n", GITREVISION);
+		print_gecko("Revision de GIT: %s\r\n", GITVERSION);
 	}
 	
 	// Go through all devices with FEAT_BOOT_DEVICE feature and set it as current if one is available
 	for(i = 0; i < MAX_DEVICES; i++) {
 		if(allDevices[i] != NULL && (allDevices[i]->features & FEAT_BOOT_DEVICE)) {
-			print_gecko("Testing device %s\r\n", allDevices[i]->deviceName);
+			print_gecko("Probando dispositivo %s\r\n", allDevices[i]->deviceName);
 			if(allDevices[i]->test()) {
 				deviceHandler_setDeviceAvailable(allDevices[i], true);
 				devices[DEVICE_CUR] = allDevices[i];
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	if(devices[DEVICE_CUR] != NULL) {
-		print_gecko("Detected %s\r\n", devices[DEVICE_CUR]->deviceName);
+		print_gecko("Detectado %s\r\n", devices[DEVICE_CUR]->deviceName);
 		if(!devices[DEVICE_CUR]->init(devices[DEVICE_CUR]->initial)) {
 			if(devices[DEVICE_CUR]->features & FEAT_AUTOLOAD_DOL) {
 				load_auto_dol();
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 		for(int i = 0; i < MAX_DEVICES; i++) {
 			if(allDevices[i] != NULL && (allDevices[i]->features & FEAT_CONFIG_DEVICE) && deviceHandler_getDeviceAvailable(allDevices[i])) {
 				swissSettings.configDeviceId = allDevices[i]->deviceUniqueId;
-				print_gecko("No default config device found, using [%s]\r\n", allDevices[i]->deviceName);
+				print_gecko("Disp. de config. no encontrado, usando [%s]\r\n", allDevices[i]->deviceName);
 				show_settings(PAGE_GLOBAL, SET_CONFIG_DEV, NULL);
 				break;
 			}
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 	swissSettings.initNetworkAtStart |= bba_exists(LOC_MEMCARD_SLOT_A | LOC_MEMCARD_SLOT_B | LOC_SERIAL_PORT_2);
 	if(swissSettings.initNetworkAtStart) {
 		// Start up the BBA if it exists
-		uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Initialising Network"));
+		uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Iniciando Red"));
 		init_network();
 		init_httpd_thread();
 		init_wiiload_thread();
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 				case 1:
 					if(strverscmp(swissSettings.gcloaderTopVersion, "2.0.1") < 0) {
 						find_existing_entry("gcldr:/GCLoader_Updater_2.0.1*.dol", true);
-						uiDrawObj_t *msgBox = DrawPublish(DrawMessageBox(D_INFO, "A firmware update is available.\ngc-loader.com/firmware-updates"));
+						uiDrawObj_t *msgBox = DrawPublish(DrawMessageBox(D_INFO, "Actualizacion disponible.\ngc-loader.com/firmware-updates"));
 						wait_press_A();
 						DrawDispose(msgBox);
 					}
@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
 				case 2:
 					if(strverscmp(swissSettings.gcloaderTopVersion, "1.0.1") < 0) {
 						find_existing_entry("gcldr:/GC_LOADER_HW2_UPDATER_1.0.1.dol", true);
-						uiDrawObj_t *msgBox = DrawPublish(DrawMessageBox(D_INFO, "A firmware update is available.\ngc-loader.com/firmware-updates-hw2"));
+						uiDrawObj_t *msgBox = DrawPublish(DrawMessageBox(D_INFO, "Actualizacion disponible.\ngc-loader.com/firmware-updates-hw2"));
 						wait_press_A();
 						DrawDispose(msgBox);
 					}
@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
 	// Check for autoload entry
 	if(swissSettings.autoload[0]) {
 		// Check that the path in the autoload entry points at a device that has been detected
-		print_gecko("Autoload entry detected [%s]\r\n", swissSettings.autoload);
+		print_gecko("Entrada autom. detectada [%s]\r\n", swissSettings.autoload);
 		find_existing_entry(&swissSettings.autoload[0], true);
 	}
 	else if(swissSettings.recent[0][0] && swissSettings.recentListLevel > 1) {
@@ -295,11 +295,11 @@ void populateDeviceAvailability() {
 		deviceHandler_setAllDevicesAvailable();
 		return;
 	}
-	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Detecting devices\205\nThis can be skipped by holding B next time"));
+	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Detectando dispositivos\205\nPuede saltarse manteniendo B la proxima vez"));
 	int i;
 	for(i = 0; i < MAX_DEVICES; i++) {
 		if(allDevices[i] != NULL && !deviceHandler_getDeviceAvailable(allDevices[i])) {
-			print_gecko("Checking device availability for device %s\r\n", allDevices[i]->deviceName);
+			print_gecko("Comprobando disponibilidad para el dispositivo %s\r\n", allDevices[i]->deviceName);
 			deviceHandler_setDeviceAvailable(allDevices[i], allDevices[i]->test());
 		}
 		if(padsButtonsHeld() & PAD_BUTTON_B) {

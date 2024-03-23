@@ -241,8 +241,8 @@ static uiDrawObj_t* addVideoEvent(uiDrawObj_t *event) {
 
 static void clearNestedEvent(uiDrawObj_t *event) {
 	if(event && !event->disposed) {
-		print_gecko("Event was not disposed!!\r\n");
-		print_gecko("Event %08X (type %s)\r\n", (u32)event, typeStrings[event->type]);
+		print_gecko("Evento no eliminado!!\r\n");
+		print_gecko("Evento %08X (tipo %s)\r\n", (u32)event, typeStrings[event->type]);
 	}
 	
 	if(event->child && event->child != event) {
@@ -728,7 +728,7 @@ static void _DrawProgressBar(uiDrawObj_t *evt) {
 		GX_InvalidateTexAll();
 		GX_LoadTexObj(&loadingTexObj, GX_TEXMAP0);
 		_drawRect(x-8, y-8, 16, 16, 0, loadingColor, (float) (numSegments)/8, (float) (numSegments+1)/8, 0.0f, 1.0f);
-		drawString(x+38, y, "Loading\205", 0.55f, true, loadingColor);
+		drawString(x+38, y, "Cargando\205", 0.55f, true, loadingColor);
 		return;
 	}
 	_DrawSimpleBox( x1, y1, x2-x1, y2-y1, 0, fillColor, borderColor);		
@@ -778,9 +778,9 @@ static void _DrawProgressBar(uiDrawObj_t *evt) {
 			formatBytes(fbTextBuffer, data->speed, 0, true);
 			strcat(fbTextBuffer, "/s");
 			drawString(x1 + 280, middleY+30, fbTextBuffer, 1.0f, true, defaultColor);
-			sprintf(fbTextBuffer,"Elapsed: %02i:%02i:%02i", data->timestart / 3600, (data->timestart / 60)%60,  data->timestart % 60);
+			sprintf(fbTextBuffer,"Transcurrido: %02i:%02i:%02i", data->timestart / 3600, (data->timestart / 60)%60,  data->timestart % 60);
 			drawString(x1 + 500, middleY+30, fbTextBuffer, 0.65f, true, defaultColor);
-			sprintf(fbTextBuffer,"Remain: %02i:%02i:%02i", data->timeremain / 3600, (data->timeremain / 60)%60,  data->timeremain % 60);
+			sprintf(fbTextBuffer,"Restante: %02i:%02i:%02i", data->timeremain / 3600, (data->timeremain / 60)%60,  data->timeremain % 60);
 			drawString(x1 + 500, middleY+45, fbTextBuffer, 0.65f, true, defaultColor);
 		}
 	}	
@@ -1150,16 +1150,16 @@ static void _DrawFileBrowserButton(uiDrawObj_t *evt) {
 			if(file->fileAttrib==IS_FILE) {
 				if(devices[DEVICE_CUR] == &__device_wode) {
 					ISOInfo_t* isoInfo = (ISOInfo_t*)&file->other;
-					sprintf(fbTextBuffer,"Partition: %i, ISO: %i", isoInfo->iso_partition,isoInfo->iso_number);
+					sprintf(fbTextBuffer,"Particion: %i, ISO: %i", isoInfo->iso_partition,isoInfo->iso_number);
 				}
 				else if(devices[DEVICE_CUR] == &__device_card_a || devices[DEVICE_CUR] == &__device_card_b) {
-					formatBytes(stpcpy(fbTextBuffer, "Size: "), file->size, 8192, false);
+					formatBytes(stpcpy(fbTextBuffer, "Tam: "), file->size, 8192, false);
 				}
 				else if(devices[DEVICE_CUR] == &__device_qoob) {
-					formatBytes(stpcpy(fbTextBuffer, "Size: "), file->size, 65536, false);
+					formatBytes(stpcpy(fbTextBuffer, "Tam: "), file->size, 65536, false);
 				}
 				else {
-					formatBytes(stpcpy(fbTextBuffer, "Size: "), file->size, 0, true);
+					formatBytes(stpcpy(fbTextBuffer, "Tam: "), file->size, 0, true);
 				}
 				drawString(data->x2 - (borderSize + (GetTextSizeInPixels(fbTextBuffer)*0.45f)), 
 					data->y2-(borderSize+24), fbTextBuffer, 0.45f, false, defaultColor);
@@ -1266,7 +1266,7 @@ static void _DrawFileBrowserButton(uiDrawObj_t *evt) {
 		if(file->fileAttrib==IS_FILE) {
 			if(devices[DEVICE_CUR] == &__device_wode) {
 				ISOInfo_t* isoInfo = (ISOInfo_t*)&file->other;
-				sprintf(fbTextBuffer,"Partition: %i, ISO: %i", isoInfo->iso_partition,isoInfo->iso_number);
+				sprintf(fbTextBuffer,"Particion: %i, ISO: %i", isoInfo->iso_partition,isoInfo->iso_number);
 			}
 			else if(devices[DEVICE_CUR] == &__device_card_a || devices[DEVICE_CUR] == &__device_card_b) {
 				formatBytes(fbTextBuffer, file->size, 8192, false);
@@ -1445,8 +1445,9 @@ static void _DrawTitleBar(uiDrawObj_t *evt) {
 	
 	_DrawSimpleBox(19, 17, 602, 62, 0, fillColor, noColor);
 	
-	drawString(40, 28, "Swiss v0.6", 1.5f, false, defaultColor);
-	sprintf(fbTextBuffer, "commit: %s rev: %s", GITREVISION, GITVERSION);
+	drawString(40, 24, "Swiss v0.6 ESP", 1.5f, false, defaultColor);
+	drawString(40, 60, "Traducido por Lopez Tutoriales", 0.55f, false, defaultColor);
+	sprintf(fbTextBuffer, "cambios: %s rev: %s", GITREVISION, GITVERSION);
 	drawString(412, 50, fbTextBuffer, 0.55f, false, defaultColor);
 	
 	s8 cputemp = SYS_GetCoreTemperature();
@@ -1617,7 +1618,7 @@ void DrawArgsSelector(const char *fileName) {
 	uiDrawObj_t *container = NULL;
 	while(1) {
 		uiDrawObj_t *newPanel = DrawEmptyBox(20,60, getVideoMode()->fbWidth-20, 460);
-		sprintf(txtbuffer, "%s Parameters:", fileName);
+		sprintf(txtbuffer, "%s Parametros:", fileName);
 		DrawAddChild(newPanel, DrawStyledLabel(25, 62, txtbuffer, GetTextScaleToFitInWidth(txtbuffer, getVideoMode()->fbWidth-50), false, defaultColor));
 
 		int i = 0, j = 0;
@@ -1632,10 +1633,10 @@ void DrawArgsSelector(const char *fileName) {
 		}
 		// Write about the default if there is any
 		DrawAddChild(newPanel, DrawTransparentBox( 35, 350, getVideoMode()->fbWidth-35, 400));
-		DrawAddChild(newPanel, DrawStyledLabel(33, 345, "Default values will be used by the DOL being loaded if a", 0.8f, false, defaultColor));
-		DrawAddChild(newPanel, DrawStyledLabel(33, 365, "parameter is not enabled. Please check the documentation", 0.8f, false, defaultColor));
-		DrawAddChild(newPanel, DrawStyledLabel(33, 385, "for this DOL if you are unsure of the default values.", 0.8f, false, defaultColor));
-		DrawAddChild(newPanel, DrawStyledLabel(640/2, 440, "(A) Toggle Param \267 (Start) Load the DOL", 1.0f, true, defaultColor));
+		DrawAddChild(newPanel, DrawStyledLabel(33, 345, "El DOL usara los valores por defecto si un parametro no", 0.8f, false, defaultColor));
+		DrawAddChild(newPanel, DrawStyledLabel(33, 365, "esta habilitado. Consulte la documentacion de este DOL", 0.8f, false, defaultColor));
+		DrawAddChild(newPanel, DrawStyledLabel(33, 385, "si no esta seguro de los valores por defecto.", 0.8f, false, defaultColor));
+		DrawAddChild(newPanel, DrawStyledLabel(640/2, 440, "(A) Cambiar Param \267 (Start) Cargar el DOL", 1.0f, true, defaultColor));
 		
 		if(container) {
 			DrawDispose(container);
@@ -1697,7 +1698,7 @@ void DrawCheatsSelector(const char *fileName) {
 	uiDrawObj_t *container = NULL;		
 	while(1) {
 		uiDrawObj_t *newPanel = DrawEmptyBox(20,60, getVideoMode()->fbWidth-20, 460);
-		sprintf(txtbuffer, "%s Cheats:", fileName);
+		sprintf(txtbuffer, "%s Trucos:", fileName);
 		DrawAddChild(newPanel, DrawStyledLabel(25, 62, txtbuffer, GetTextScaleToFitInWidth(txtbuffer, getVideoMode()->fbWidth-50), false, defaultColor));
 
 		int i = 0, j = 0;
@@ -1714,16 +1715,16 @@ void DrawCheatsSelector(const char *fileName) {
 		DrawAddChild(newPanel, DrawTransparentBox( 35, 350, getVideoMode()->fbWidth-35, 410));
 		
 		float percent = (((float)getEnabledCheatsSize() / (float)kenobi_get_maxsize()) * 100.0f);
-		sprintf(txtbuffer, "Space taken by cheats: %i/%i bytes (%.1f%% free)"
+		sprintf(txtbuffer, "Espacio de los trucos: %i/%i bytes (%.1f%% libre)"
 			, getEnabledCheatsSize(), kenobi_get_maxsize(), 100.0f-percent);
 		DrawAddChild(newPanel, DrawStyledLabel(33, 345, txtbuffer, 0.8f, false, defaultColor));
 		
-		sprintf(txtbuffer, "Enabled: %i Total: %i", getEnabledCheatsCount(), cheats->num_cheats);
+		sprintf(txtbuffer, "Activado: %i Total: %i", getEnabledCheatsCount(), cheats->num_cheats);
 		DrawAddChild(newPanel, DrawStyledLabel(33, 370, txtbuffer, 0.8f, false, defaultColor));
 		
-		sprintf(txtbuffer, "WiiRD Debug %s", swissSettings.wiirdDebug ? "Enabled":"Disabled");
+		sprintf(txtbuffer, "Depur. WiiRD %s", swissSettings.wiirdDebug ? "Activado":"Desactivado");
 		DrawAddChild(newPanel, DrawStyledLabel(33, 395, txtbuffer, 0.8f, false, defaultColor));
-		DrawAddChild(newPanel, DrawStyledLabel(640/2, 440, "(A) Toggle Cheat \267 (X) WiiRD Debug \267 (B) Return", 0.9f, true, defaultColor));
+		DrawAddChild(newPanel, DrawStyledLabel(640/2, 440, "(A) Cambiar Truco \267 (X) Depur. WiiRD \267 (B) Volver", 0.9f, true, defaultColor));
 
 		if(container) {
 			DrawDispose(container);
@@ -1765,8 +1766,8 @@ void DrawCheatsSelector(const char *fileName) {
 
 void DrawGetTextEntry(int mode, const char *label, void *src, int size) {
 	
-	print_gecko("DrawGetTextEntry Modes: Alpha [%s] Numeric [%s] IP [%s] Masked [%s] File [%s]\r\n", mode & ENTRYMODE_ALPHA ? "Y":"N", mode & ENTRYMODE_NUMERIC ? "Y":"N",
-																		mode & ENTRYMODE_IP ? "Y":"N", mode & ENTRYMODE_MASKED ? "Y":"N", mode & ENTRYMODE_FILE ? "Y":"N");
+	print_gecko("Modos DrawGetTextEntry: Alfa [%s] Numerico [%s] IP [%s] Enmascarado [%s] Arch [%s]\r\n", mode & ENTRYMODE_ALPHA ? "S":"N", mode & ENTRYMODE_NUMERIC ? "S":"N",
+																		mode & ENTRYMODE_IP ? "S":"N", mode & ENTRYMODE_MASKED ? "S":"N", mode & ENTRYMODE_FILE ? "S":"N");
 	char *text = calloc(1, size + 1);
 	if(mode & (ENTRYMODE_ALPHA|ENTRYMODE_IP)) {
 		strncpy(text, src, size);
@@ -1775,7 +1776,7 @@ void DrawGetTextEntry(int mode, const char *label, void *src, int size) {
 		u16 *src_int = (u16*)src;
 		itoa(*src_int, text, 10);
 	}
-	print_gecko("Text is [%s] size %i\r\n", text, size);
+	print_gecko("Text es [%s] tam. %i\r\n", text, size);
 	
 	int caret = strlen(text);
 	int cur_row = 0;
@@ -1911,13 +1912,13 @@ void DrawGetTextEntry(int mode, const char *label, void *src, int size) {
 		// Double box for extra darkness
 		uiDrawObj_t *newPanel = DrawEmptyBox(20,60, getVideoMode()->fbWidth-20, 440);
 		DrawAddChild(newPanel, DrawEmptyBox(20,60, getVideoMode()->fbWidth-20, 440));
-		sprintf(txtbuffer, "%s - Please enter a value", label);
+		sprintf(txtbuffer, "%s - Introduce un valor", label);
 		DrawAddChild(newPanel, DrawStyledLabel(25, 62, txtbuffer, GetTextScaleToFitInWidth(txtbuffer, getVideoMode()->fbWidth-50), false, defaultColor));
 
 		// Draw the text entry box (TODO: mask chars if the mode says to do so)
 		DrawAddChild(newPanel, DrawEmptyBox(40, 100, getVideoMode()->fbWidth-40, 140));
 		DrawAddChild(newPanel, DrawStyledLabelWithCaret(320, 120, text, GetTextScaleToFitInWidth(text, getVideoMode()->fbWidth-90), true, defaultColor, caret));
-		DrawAddChild(newPanel, DrawStyledLabel(320, 160, "(L/R) Cursor \267 (Start) Accept \267 (B) Discard", 0.75f, true, defaultColor));
+		DrawAddChild(newPanel, DrawStyledLabel(320, 160, "(L/R) Cursor \267 (Start) Aceptar \267 (B) Descartar", 0.75f, true, defaultColor));
 
 		// Alphanumeric has a little "mode" hint at the bottom (upper/lower case set switching)
 		if(mode & ENTRYMODE_ALPHA) {
@@ -1925,7 +1926,7 @@ void DrawGetTextEntry(int mode, const char *label, void *src, int size) {
 				(mode & ENTRYMODE_FILE ? txt_mode_file_chars_lower : txt_mode_chars_lower)
 				: 
 				(mode & ENTRYMODE_FILE ? txt_mode_file_chars_upper : txt_mode_chars_upper);
-			sprintf(txtbuffer, "Press X to change to [%s], current mode is [%s]",
+			sprintf(txtbuffer, "Pulsa X para cambiar a [%s], modo actual: [%s]",
 													txt_modes_str[(cur_txt_mode + 1 >= num_txt_modes ? 0 : cur_txt_mode + 1)], txt_modes_str[cur_txt_mode]);
 			DrawAddChild(newPanel, DrawStyledLabel(25, 420, txtbuffer, 0.65f, false, defaultColor));
 		}
@@ -1942,7 +1943,7 @@ void DrawGetTextEntry(int mode, const char *label, void *src, int size) {
 				DrawAddChild(newPanel, DrawEmptyColouredBox(x, y, x+button_width, y+button_height, cur_col == dx && cur_row == dy ? (GXColor) {96,107,164,GUI_MSGBOX_ALPHA} : (GXColor) {0,0,0,GUI_MSGBOX_ALPHA}));
 				float fontSize = isSpecial ? 0.65f : 1.0f;
 				if(isSpecial)
-					sprintf(txtbuffer, "%s", gridText[i] == '\a' ? "Space" : "(Y) Back");
+					sprintf(txtbuffer, "%s", gridText[i] == '\a' ? "Espacio" : "(Y) Volver");
 				else
 					sprintf(txtbuffer, "%c", gridText[i]);
 				DrawAddChild(newPanel, DrawStyledLabel(x+(button_width/2), y+(button_height/2), txtbuffer, fontSize, true, cur_col == dx && cur_row == dy ? defaultColor : deSelectedColor));

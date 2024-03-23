@@ -105,7 +105,7 @@ void *installPatch(int patchId) {
 			break;
 	}
 	patchLocation = installPatch2(patch, patchSize);
-	print_gecko("Installed patch %i to %08X\r\n", patchId, patchLocation);
+	print_gecko("Parche instalado %i en %08X\r\n", patchId, patchLocation);
 	return patchLocation;
 }
 
@@ -132,7 +132,7 @@ void *installPatch2(const void *patch, u32 patchSize) {
 // See patchIds enum in patcher.h
 void *getPatchAddr(int patchId) {
 	if(patchId >= PATCHES_MAX || patchId < 0) {
-		print_gecko("Invalid Patch location requested\r\n");
+		print_gecko("Localizacion de parche solicitada invalida\r\n");
 		return NULL;
 	}
 	if(!patch_locations[patchId]) {
@@ -162,7 +162,7 @@ int install_code(int final)
 	if (!top_addr) {
 		patch     = stub_bin;
 		patchSize = stub_bin_size;
-		print_gecko("Installing Reload Stub\r\n");
+		print_gecko("Instalando Reload Stub\r\n");
 		
 		memcpy((void *)0x80001800, patch, patchSize);
 		DCFlushRangeNoSync((void *)0x80001800, patchSize);
@@ -193,7 +193,7 @@ int install_code(int final)
 			default:
 				return 0;
 		}
-		print_gecko("Installing Patch for IDE-EXI\r\n");
+		print_gecko("Instalando Parche para IDE-EXI\r\n");
 	}
 	// SD Card over EXI
 	else if(devices[DEVICE_CUR] == &__device_sd_a || devices[DEVICE_CUR] == &__device_sd_b || devices[DEVICE_CUR] == &__device_sd_c) {
@@ -218,7 +218,7 @@ int install_code(int final)
 			default:
 				return 0;
 		}
-		print_gecko("Installing Patch for SD Card over EXI\r\n");
+		print_gecko("Instalando Parche para SD sobre EXI\r\n");
 	}
 	// DVD
 	else if(devices[DEVICE_CUR] == &__device_dvd || devices[DEVICE_CUR] == &__device_wode) {
@@ -235,7 +235,7 @@ int install_code(int final)
 			default:
 				return 0;
 		}
-		print_gecko("Installing Patch for DVD\r\n");
+		print_gecko("Instalando Parche para DVD\r\n");
 	}
 	// USB Gecko
 	else if(devices[DEVICE_CUR] == &__device_usbgecko) {
@@ -247,7 +247,7 @@ int install_code(int final)
 			default:
 				return 0;
 		}
-		print_gecko("Installing Patch for USB Gecko\r\n");
+		print_gecko("Instalando Parche para USB Gecko\r\n");
 	}
 	// Wiikey Fusion
 	else if(devices[DEVICE_CUR] == &__device_wkf) {
@@ -269,7 +269,7 @@ int install_code(int final)
 			default:
 				return 0;
 		}
-		print_gecko("Installing Patch for WKF\r\n");
+		print_gecko("Instalando Parche para WKF\r\n");
 	}
 	// Broadband Adapter
 	else if(devices[DEVICE_CUR] == &__device_fsp) {
@@ -300,7 +300,7 @@ int install_code(int final)
 					return 0;
 			}
 		}
-		print_gecko("Installing Patch for File Service Protocol\r\n");
+		print_gecko("Instalando Parche para Protocolo de Servicio de Arch.\r\n");
 	}
 	// GC Loader
 	else if(devices[DEVICE_CUR] == &__device_gcloader) {
@@ -343,11 +343,11 @@ int install_code(int final)
 					return 0;
 			}
 		}
-		print_gecko("Installing Patch for GC Loader\r\n");
+		print_gecko("Instalando Parche para GC Loader\r\n");
 	}
 	if (!final) {
-		print_gecko("Space for patch remaining: %i\r\n", top_addr - LO_RESERVE);
-		print_gecko("Space taken by vars/video patches: %i\r\n", HI_RESERVE - top_addr);
+		print_gecko("Espacio para parche restante: %i\r\n", top_addr - LO_RESERVE);
+		print_gecko("Espacio tomado por parches de vars/video: %i\r\n", HI_RESERVE - top_addr);
 		if (top_addr < LO_RESERVE + patchSize)
 			return 0;
 		patchLocation = Calc_Address(NULL, PATCH_OTHER, LO_RESERVE);
@@ -432,12 +432,12 @@ bool find_pattern(u32 *data, u32 offsetFoundAt, u32 length, FuncPattern *functio
 	}
 	
 	if (!functionPattern) {
-		print_gecko("Length: %d\n", FP.Length);
-		print_gecko("Loads: %d\n", FP.Loads);
-		print_gecko("Stores: %d\n", FP.Stores);
-		print_gecko("FCalls: %d\n", FP.FCalls);
-		print_gecko("Branch: %d\n", FP.Branch);
-		print_gecko("Moves: %d\n", FP.Moves);
+		print_gecko("Longitud: %d\n", FP.Length);
+		print_gecko("Cargas: %d\n", FP.Loads);
+		print_gecko("Almacenamiento: %d\n", FP.Stores);
+		print_gecko("LlamadasF: %d\n", FP.FCalls);
+		print_gecko("Rama: %d\n", FP.Branch);
+		print_gecko("Movimientos: %d\n", FP.Moves);
 	}
 	
 	return false;
@@ -5184,7 +5184,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			memcpy(data + i, memcpySig.Patch, memcpySig.PatchLength);
 			data[i + memcpySig.PatchLength / sizeof(u32) - 1] = branch(backwards_memcpy, _memcpy + memcpySig.PatchLength / sizeof(u32) - 1);
 			
-			print_gecko("Found:[%s] @ %08X\n", memcpySig.Name, _memcpy);
+			print_gecko("Encontrado:[%s] @ %08X\n", memcpySig.Name, _memcpy);
 			patched++;
 		}
 	}
@@ -5209,7 +5209,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 139] = 0x28000009;	// cmplwi	r0, 9
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", OSExceptionInitSigs[j].Name, j, OSExceptionInit);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", OSExceptionInitSigs[j].Name, j, OSExceptionInit);
 			patched++;
 		}
 	}
@@ -5226,7 +5226,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			if ((k = SystemCallVectorSig.offsetFoundAt))
 				data[k + 0] = (u32)OSSetAlarm;
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", OSSetAlarmSigs[j].Name, j, OSSetAlarm);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", OSSetAlarmSigs[j].Name, j, OSSetAlarm);
 			patched++;
 		}
 	}
@@ -5239,7 +5239,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			if ((k = SystemCallVectorSig.offsetFoundAt))
 				data[k + 1] = (u32)OSCancelAlarm;
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", OSCancelAlarmSigs[j].Name, j, OSCancelAlarm);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", OSCancelAlarmSigs[j].Name, j, OSCancelAlarm);
 			patched++;
 		}
 	}
@@ -5268,7 +5268,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DecrementerExceptionCallbackSigs[j].Name, j, DecrementerExceptionCallback);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DecrementerExceptionCallbackSigs[j].Name, j, DecrementerExceptionCallback);
 			patched++;
 		}
 	}
@@ -5281,7 +5281,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			if ((k = SystemCallVectorSig.offsetFoundAt))
 				data[k + 2] = (u32)OSLoadContext;
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", OSLoadContextSigs[j].Name, j, OSLoadContext);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", OSLoadContextSigs[j].Name, j, OSLoadContext);
 			patched++;
 		}
 	}
@@ -5293,7 +5293,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			if ((k = SystemCallVectorSig.offsetFoundAt))
 				data[k + 3] = (u32)OSDisableInterrupts;
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", OSDisableInterruptsSig.Name, j, OSDisableInterrupts);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", OSDisableInterruptsSig.Name, j, OSDisableInterrupts);
 			patched++;
 		}
 	}
@@ -5315,7 +5315,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 13] = 0x3C800C00;	// lis		r4, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __OSInterruptInitSigs[j].Name, j, __OSInterruptInit);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __OSInterruptInitSigs[j].Name, j, __OSInterruptInit);
 			patched++;
 		}
 	}
@@ -5390,7 +5390,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 144] = 0x3C800C00;	// lis		r4, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", SetInterruptMaskSigs[j].Name, j, SetInterruptMask);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", SetInterruptMaskSigs[j].Name, j, SetInterruptMask);
 			patched++;
 		}
 	}
@@ -5455,7 +5455,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			if ((k = SystemCallVectorSig.offsetFoundAt))
 				data[k + 4] = (u32)__OSDispatchInterrupt;
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", __OSDispatchInterruptSigs[j].Name, j, __OSDispatchInterrupt);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __OSDispatchInterruptSigs[j].Name, j, __OSDispatchInterrupt);
 			patched++;
 		}
 	}
@@ -5467,7 +5467,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 		if (ExternalInterruptHandler) {
 			data[i + ExternalInterruptHandlerSigs[j].Length - 1] = branch(DISPATCH_INTERRUPT, ExternalInterruptHandler + ExternalInterruptHandlerSigs[j].Length - 1);
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", ExternalInterruptHandlerSigs[j].Name, j, ExternalInterruptHandler);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", ExternalInterruptHandlerSigs[j].Name, j, ExternalInterruptHandler);
 			patched++;
 		}
 	}
@@ -5482,7 +5482,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 				case 1:
 				case 2: data[i + 5] = branchAndLink(FINI, __OSDoHotReset + 5); break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __OSDoHotResetSigs[j].Name, j, __OSDoHotReset);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __OSDoHotResetSigs[j].Name, j, __OSDoHotReset);
 			patched++;
 		}
 		
@@ -5493,7 +5493,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 				if (__OSDoHotReset && swissSettings.igrType != IGR_OFF)
 					data[i + 4] = branch(__OSDoHotReset, PPCHalt + 4);
 				
-				print_gecko("Found:[%s] @ %08X\n", PPCHaltSig.Name, PPCHalt);
+				print_gecko("Encontrado:[%s] @ %08X\n", PPCHaltSig.Name, PPCHalt);
 				patched++;
 			}
 		}
@@ -5521,7 +5521,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			if ((k = SystemCallVectorSig.offsetFoundAt))
 				data[k + 5] = (u32)OSResetSystem;
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", OSResetSystemSigs[j].Name, j, OSResetSystem);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", OSResetSystemSigs[j].Name, j, OSResetSystem);
 			patched++;
 		}
 	}
@@ -5599,7 +5599,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 19] = branchAndLink(INIT, __OSInitSystemCall + 19);
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __OSInitSystemCallSigs[j].Name, j, __OSInitSystemCall);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __OSInitSystemCallSigs[j].Name, j, __OSInitSystemCall);
 			patched++;
 		}
 	}
@@ -5631,7 +5631,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 86] = 0x4182FFF4;	// beq		-3
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", SelectThreadSigs[j].Name, j, SelectThread);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", SelectThreadSigs[j].Name, j, SelectThread);
 			patched++;
 		}
 	}
@@ -5652,7 +5652,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", CompleteTransferSigs[j].Name, j, CompleteTransfer);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", CompleteTransferSigs[j].Name, j, CompleteTransfer);
 			patched++;
 		}
 	}
@@ -5689,7 +5689,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIImmSigs[j].Name, j, EXIImm);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIImmSigs[j].Name, j, EXIImm);
 			patched++;
 		}
 	}
@@ -5725,7 +5725,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIDmaSigs[j].Name, j, EXIDma);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIDmaSigs[j].Name, j, EXIDma);
 			patched++;
 		}
 	}
@@ -5813,7 +5813,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXISyncSigs[j].Name, j, EXISync);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXISyncSigs[j].Name, j, EXISync);
 			patched++;
 		}
 	}
@@ -5846,7 +5846,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIClearInterruptsSigs[j].Name, j, EXIClearInterrupts);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIClearInterruptsSigs[j].Name, j, EXIClearInterrupts);
 			patched++;
 		}
 	}
@@ -5882,7 +5882,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __EXIProbeSigs[j].Name, j, __EXIProbe);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __EXIProbeSigs[j].Name, j, __EXIProbe);
 			patched++;
 		}
 	}
@@ -5899,7 +5899,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 188] = 0x3C600C00;	// lis		r3, 0x0C00
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIAttachSigs[j].Name, j, EXIAttach);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIAttachSigs[j].Name, j, EXIAttach);
 			patched++;
 		}
 	}
@@ -5916,7 +5916,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 11] = 0x2C1D0003;	// cmpwi	r29, 3
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIDetachSigs[j].Name, j, EXIDetach);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIDetachSigs[j].Name, j, EXIDetach);
 			patched++;
 		}
 	}
@@ -5928,7 +5928,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			if (devices[DEVICE_CUR]->emulated() & (EMU_MEMCARD | EMU_ETHERNET | EMU_BUS_ARBITER))
 				data[i + 55] = 0x3C600C00;	// lis		r3, 0x0C00
 			
-			print_gecko("Found:[%s] @ %08X\n", EXISelectSDSig.Name, EXISelectSD);
+			print_gecko("Encontrado:[%s] @ %08X\n", EXISelectSDSig.Name, EXISelectSD);
 			patched++;
 		}
 	}
@@ -5963,7 +5963,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXISelectSigs[j].Name, j, EXISelect);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXISelectSigs[j].Name, j, EXISelect);
 			patched++;
 		}
 	}
@@ -6002,7 +6002,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIDeselectSigs[j].Name, j, EXIDeselect);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIDeselectSigs[j].Name, j, EXIDeselect);
 			patched++;
 		}
 	}
@@ -6030,7 +6030,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIIntrruptHandlerSigs[j].Name, j, EXIIntrruptHandler);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIIntrruptHandlerSigs[j].Name, j, EXIIntrruptHandler);
 			patched++;
 		}
 	}
@@ -6059,7 +6059,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", TCIntrruptHandlerSigs[j].Name, j, TCIntrruptHandler);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", TCIntrruptHandlerSigs[j].Name, j, TCIntrruptHandler);
 			patched++;
 		}
 	}
@@ -6089,7 +6089,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXTIntrruptHandlerSigs[j].Name, j, EXTIntrruptHandler);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXTIntrruptHandlerSigs[j].Name, j, EXTIntrruptHandler);
 			patched++;
 		}
 	}
@@ -6147,7 +6147,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIInitSigs[j].Name, j, EXIInit);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIInitSigs[j].Name, j, EXIInit);
 			patched++;
 		}
 	}
@@ -6160,7 +6160,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			if ((k = SystemCallVectorSig.offsetFoundAt))
 				data[k + 6] = (u32)EXILock;
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", EXILockSigs[j].Name, j, EXILock);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXILockSigs[j].Name, j, EXILock);
 			patched++;
 		}
 	}
@@ -6173,7 +6173,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			if ((k = SystemCallVectorSig.offsetFoundAt))
 				data[k + 7] = (u32)EXIUnlock;
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIUnlockSigs[j].Name, j, EXIUnlock);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIUnlockSigs[j].Name, j, EXIUnlock);
 			patched++;
 		}
 	}
@@ -6204,7 +6204,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 875] = 0x3C600C00;	// lis		r3, 0x0C00
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", EXIGetIDSigs[j].Name, j, EXIGetID);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", EXIGetIDSigs[j].Name, j, EXIGetID);
 			patched++;
 		}
 	}
@@ -6311,7 +6311,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 118] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __DVDInterruptHandlerSigs[j].Name, j, __DVDInterruptHandler);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __DVDInterruptHandlerSigs[j].Name, j, __DVDInterruptHandler);
 			patched++;
 		}
 	}
@@ -6351,7 +6351,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 18] = 0x3C800C00;	// lis		r4, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", ReadSigs[j].Name, j, Read);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", ReadSigs[j].Name, j, Read);
 			patched++;
 		}
 	}
@@ -6378,7 +6378,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 223] = 0x3C800C00;	// lis		r4, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowReadSigs[j].Name, j, DVDLowRead);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowReadSigs[j].Name, j, DVDLowRead);
 			patched++;
 		}
 	}
@@ -6410,7 +6410,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i +  3] = 0x3CE00C00;	// lis		r7, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowSeekSigs[j].Name, j, DVDLowSeek);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowSeekSigs[j].Name, j, DVDLowSeek);
 			patched++;
 		}
 	}
@@ -6435,7 +6435,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 4] = 0x3C800C00;	// lis		r4, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowWaitCoverCloseSigs[j].Name, j, DVDLowWaitCoverClose);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowWaitCoverCloseSigs[j].Name, j, DVDLowWaitCoverClose);
 			patched++;
 		}
 	}
@@ -6475,7 +6475,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i +  6] = 0x3D000C00;	// lis		r8, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowReadDiskIDSigs[j].Name, j, DVDLowReadDiskID);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowReadDiskIDSigs[j].Name, j, DVDLowReadDiskID);
 			patched++;
 		}
 	}
@@ -6507,7 +6507,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i +  3] = 0x3CA00C00;	// lis		r5, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowStopMotorSigs[j].Name, j, DVDLowStopMotor);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowStopMotorSigs[j].Name, j, DVDLowStopMotor);
 			patched++;
 		}
 	}
@@ -6539,7 +6539,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i +  3] = 0x3CA00C00;	// lis		r5, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowRequestErrorSigs[j].Name, j, DVDLowRequestError);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowRequestErrorSigs[j].Name, j, DVDLowRequestError);
 			patched++;
 		}
 	}
@@ -6577,7 +6577,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i +  3] = 0x3D000C00;	// lis		r8, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowInquirySigs[j].Name, j, DVDLowInquiry);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowInquirySigs[j].Name, j, DVDLowInquiry);
 			patched++;
 		}
 	}
@@ -6613,7 +6613,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i +  6] = 0x3D000C00;	// lis		r8, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowAudioStreamSigs[j].Name, j, DVDLowAudioStream);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowAudioStreamSigs[j].Name, j, DVDLowAudioStream);
 			patched++;
 		}
 	}
@@ -6645,7 +6645,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i +  6] = 0x3CC00C00;	// lis		r6, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowRequestAudioStatusSigs[j].Name, j, DVDLowRequestAudioStatus);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowRequestAudioStatusSigs[j].Name, j, DVDLowRequestAudioStatus);
 			patched++;
 		}
 	}
@@ -6675,7 +6675,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 14] = 0x3CA00C00;	// lis		r5, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowAudioBufferConfigSigs[j].Name, j, DVDLowAudioBufferConfig);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowAudioBufferConfigSigs[j].Name, j, DVDLowAudioBufferConfig);
 			patched++;
 		}
 	}
@@ -6702,7 +6702,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 36] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowResetSigs[j].Name, j, DVDLowReset);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowResetSigs[j].Name, j, DVDLowReset);
 			patched++;
 		}
 	}
@@ -6721,7 +6721,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 0] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DoBreakSigs[j].Name, j, DoBreak);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DoBreakSigs[j].Name, j, DoBreak);
 			patched++;
 		}
 	}
@@ -6739,7 +6739,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 1] = 0x3C800C00;	// lis		r4, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", AlarmHandlerForBreakSigs[j].Name, j, AlarmHandlerForBreak);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", AlarmHandlerForBreakSigs[j].Name, j, AlarmHandlerForBreak);
 			patched++;
 		}
 	}
@@ -6760,7 +6760,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 1] = 0x3C800C00;	// lis		r4, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowBreakSigs[j].Name, j, DVDLowBreak);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowBreakSigs[j].Name, j, DVDLowBreak);
 			patched++;
 		}
 	}
@@ -6785,7 +6785,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 0] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowClearCallbackSigs[j].Name, j, DVDLowClearCallback);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowClearCallbackSigs[j].Name, j, DVDLowClearCallback);
 			patched++;
 		}
 	}
@@ -6804,7 +6804,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 26] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDLowGetCoverStatusSigs[j].Name, j, DVDLowGetCoverStatus);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDLowGetCoverStatusSigs[j].Name, j, DVDLowGetCoverStatus);
 			patched++;
 		}
 	}
@@ -6819,7 +6819,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			data[i + 12] = 0x38000000;	// li		r0, 0
 			data[i + 13] = branch(__DVDLowTestAlarmHook, __DVDLowTestAlarm + 13);
 			
-			print_gecko("Found:[%s] @ %08X\n", __DVDLowTestAlarmSig.Name, __DVDLowTestAlarm);
+			print_gecko("Encontrado:[%s] @ %08X\n", __DVDLowTestAlarmSig.Name, __DVDLowTestAlarm);
 			patched++;
 		}
 	}
@@ -6830,7 +6830,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 		if (DVDGetTransferredSize) {
 			data[i + 20] = 0x3C800C00;	// lis		r4, 0x0C00
 			
-			print_gecko("Found:[%s] @ %08X\n", DVDGetTransferredSizeSig.Name, DVDGetTransferredSize);
+			print_gecko("Encontrado:[%s] @ %08X\n", DVDGetTransferredSizeSig.Name, DVDGetTransferredSize);
 			patched++;
 		}
 	}
@@ -6869,7 +6869,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 28] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDInitSigs[j].Name, j, DVDInit);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDInitSigs[j].Name, j, DVDInit);
 			patched++;
 		}
 	}
@@ -6905,7 +6905,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 25] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", cbForStateGettingErrorSigs[j].Name, j, cbForStateGettingError);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", cbForStateGettingErrorSigs[j].Name, j, cbForStateGettingError);
 			patched++;
 		}
 	}
@@ -6935,7 +6935,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 21] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", cbForUnrecoveredErrorRetrySigs[j].Name, j, cbForUnrecoveredErrorRetry);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", cbForUnrecoveredErrorRetrySigs[j].Name, j, cbForUnrecoveredErrorRetry);
 			patched++;
 		}
 	}
@@ -6961,7 +6961,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i +  1] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", cbForStateMotorStoppedSigs[j].Name, j, cbForStateMotorStopped);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", cbForStateMotorStoppedSigs[j].Name, j, cbForStateMotorStopped);
 			patched++;
 		}
 	}
@@ -7117,7 +7117,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 190] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", stateBusySigs[j].Name, j, stateBusy);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", stateBusySigs[j].Name, j, stateBusy);
 			patched++;
 		}
 	}
@@ -7201,7 +7201,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 274] = 0x3C600C00;	// lis		r3, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", cbForStateBusySigs[j].Name, j, cbForStateBusy);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", cbForStateBusySigs[j].Name, j, cbForStateBusy);
 			patched++;
 		}
 	}
@@ -7224,7 +7224,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 5] = 0x3C800C00;	// lis		r4, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDResetSigs[j].Name, j, DVDReset);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDResetSigs[j].Name, j, DVDReset);
 			patched++;
 		}
 	}
@@ -7245,7 +7245,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 					data[i + 40] = 0x3C800C00;	// lis		r4, 0x0C00
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DVDCheckDiskSigs[j].Name, j, DVDCheckDisk);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DVDCheckDiskSigs[j].Name, j, DVDCheckDisk);
 			patched++;
 		}
 	}
@@ -7264,7 +7264,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", VISetRegsSigs[j].Name, j, VISetRegs);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", VISetRegsSigs[j].Name, j, VISetRegs);
 			patched++;
 		}
 	}
@@ -7295,7 +7295,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __VIRetraceHandlerSigs[j].Name, j, __VIRetraceHandler);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __VIRetraceHandlerSigs[j].Name, j, __VIRetraceHandler);
 			patched++;
 		}
 	}
@@ -7323,7 +7323,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", AIInitDMASigs[j].Name, j, AIInitDMA);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", AIInitDMASigs[j].Name, j, AIInitDMA);
 			patched++;
 		}
 	}
@@ -7344,7 +7344,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s] @ %08X\n", AIGetDMAStartAddrSigs[j].Name, AIGetDMAStartAddr);
+			print_gecko("Encontrado:[%s] @ %08X\n", AIGetDMAStartAddrSigs[j].Name, AIGetDMAStartAddr);
 			patched++;
 		}
 	}
@@ -7357,7 +7357,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			memset(data + i, 0, GXPeekARGBSigs[j].Length * sizeof(u32));
 			memcpy(data + i, GXPeekARGBSigs[j].Patch, GXPeekARGBSigs[j].PatchLength);
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", GXPeekARGBSigs[j].Name, j, GXPeekARGB);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", GXPeekARGBSigs[j].Name, j, GXPeekARGB);
 			patched++;
 		}
 	}
@@ -7370,7 +7370,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			memset(data + i, 0, GXPokeARGBSigs[j].Length * sizeof(u32));
 			memcpy(data + i, GXPokeARGBSigs[j].Patch, GXPokeARGBSigs[j].PatchLength);
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", GXPokeARGBSigs[j].Name, j, GXPokeARGB);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", GXPokeARGBSigs[j].Name, j, GXPokeARGB);
 			patched++;
 		}
 	}
@@ -7385,7 +7385,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			
 			data[i + 1] = 0x3CC00800;	// lis		r6, 0x0800
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", GXPeekZSigs[j].Name, j, GXPeekZ);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", GXPeekZSigs[j].Name, j, GXPeekZ);
 			patched++;
 		}
 	}
@@ -7398,7 +7398,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			memset(data + i, 0, GXPokeZSigs[j].Length * sizeof(u32));
 			memcpy(data + i, GXPokeZSigs[j].Patch, GXPokeZSigs[j].PatchLength);
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", GXPokeZSigs[j].Name, j, GXPokeZ);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", GXPokeZSigs[j].Name, j, GXPokeZ);
 			patched++;
 		}
 	}
@@ -7416,7 +7416,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 				data[i + 71] = 0x7C1EEFAC;	// icbi		r30, r29
 				data[i + 86] = 0x7C1EE7AC;	// icbi		r30, r28
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __VMBASESetupExceptionHandlersSigs[j].Name, j, __VMBASESetupExceptionHandlers);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __VMBASESetupExceptionHandlersSigs[j].Name, j, __VMBASESetupExceptionHandlers);
 			patched++;
 		}
 	}
@@ -7428,7 +7428,7 @@ int Patch_Hypervisor(u32 *data, u32 length, int dataType)
 			data[i +  5] = 0x7CBA02A6;	// mfsrr0	r5
 			data[i + 10] = 0x7CBA02A6;	// mfsrr0	r5
 			
-			print_gecko("Found:[%s] @ %08X\n", __VMBASEISIExceptionHandlerSig.Name, __VMBASEISIExceptionHandler);
+			print_gecko("Encontrado:[%s] @ %08X\n", __VMBASEISIExceptionHandlerSig.Name, __VMBASEISIExceptionHandler);
 			patched++;
 		}
 	}
@@ -8833,7 +8833,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 				data[i + 0] = 0x38600001;	// li		r3, 1
 				data[i + 1] = 0x4E800020;	// blr
 			}
-			print_gecko("Found:[%s] @ %08X\n", OSGetEuRgb60ModeSigs[j].Name, OSGetEuRgb60Mode);
+			print_gecko("Encontrado:[%s] @ %08X\n", OSGetEuRgb60ModeSigs[j].Name, OSGetEuRgb60Mode);
 		}
 	}
 	
@@ -8847,7 +8847,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 				
 				data[i + 0] = 0x4E800020;	// blr
 			}
-			print_gecko("Found:[%s] @ %08X\n", OSSetEuRgb60ModeSigs[j].Name, OSSetEuRgb60Mode);
+			print_gecko("Encontrado:[%s] @ %08X\n", OSSetEuRgb60ModeSigs[j].Name, OSSetEuRgb60Mode);
 		}
 	}
 	
@@ -8897,7 +8897,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", getCurrentFieldEvenOddSigs[k].Name, k, getCurrentFieldEvenOdd);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", getCurrentFieldEvenOddSigs[k].Name, k, getCurrentFieldEvenOdd);
 		}
 		
 		if (j < sizeof(VISetRegsSigs) / sizeof(FuncPattern) && (i = VISetRegsSigs[j].offsetFoundAt)) {
@@ -8937,7 +8937,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 							break;
 					}
 				}
-				print_gecko("Found:[%s$%i] @ %08X\n", VISetRegsSigs[j].Name, j, VISetRegs);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", VISetRegsSigs[j].Name, j, VISetRegs);
 			}
 		}
 		
@@ -9092,7 +9092,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					else
 						data[i + __VIRetraceHandlerSigs[j].Length - 1] = branch(CHEATS_ENGINE_START, __VIRetraceHandler + __VIRetraceHandlerSigs[j].Length - 1);
 				}
-				print_gecko("Found:[%s$%i] @ %08X\n", __VIRetraceHandlerSigs[j].Name, j, __VIRetraceHandler);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", __VIRetraceHandlerSigs[j].Name, j, __VIRetraceHandler);
 			}
 		}
 	}
@@ -9183,7 +9183,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 				for (k = 6; k < getTimingSigs[j].PatchLength / sizeof(u32); k++)
 					data[i + k] += timingTableAddr;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", getTimingSigs[j].Name, j, getTiming);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", getTimingSigs[j].Name, j, getTiming);
 		}
 	}
 	
@@ -9234,7 +9234,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					data[i + 161] = 0x54C5177A;	// rlwinm	r5, r6, 2, 29, 29
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __VIInitSigs[j].Name, j, __VIInit);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __VIInitSigs[j].Name, j, __VIInit);
 		}
 	}
 	
@@ -9259,7 +9259,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 			data[i + 105] = 0x5466083C;	// slwi		r6, r3, 1
 			data[i + 106] = 0x7CC03050;	// sub		r6, r6, r0
 			
-			print_gecko("Found:[%s] @ %08X\n", AdjustPositionSig.Name, AdjustPosition);
+			print_gecko("Encontrado:[%s] @ %08X\n", AdjustPositionSig.Name, AdjustPosition);
 		}
 	}
 	
@@ -9269,7 +9269,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 		if (ImportAdjustingValues) {
 			data[i + 17] = 0x38000000 | (swissSettings.forceVOffset & 0xFFFF);
 			
-			print_gecko("Found:[%s] @ %08X\n", ImportAdjustingValuesSig.Name, ImportAdjustingValues);
+			print_gecko("Encontrado:[%s] @ %08X\n", ImportAdjustingValuesSig.Name, ImportAdjustingValues);
 		}
 	}
 	
@@ -9316,7 +9316,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					case 8: data[i + 201] = 0x39200000 | (swissSettings.sramVideo & 0xFFFF); break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", VIInitSigs[k].Name, k, VIInit);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", VIInitSigs[k].Name, k, VIInit);
 		}
 		
 		if (j < sizeof(VIWaitForRetraceSigs) / sizeof(FuncPattern) && (i = VIWaitForRetraceSigs[j].offsetFoundAt)) {
@@ -9335,7 +9335,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 							break;
 					}
 				}
-				print_gecko("Found:[%s$%i] @ %08X\n", VIWaitForRetraceSigs[j].Name, j, VIWaitForRetrace);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", VIWaitForRetraceSigs[j].Name, j, VIWaitForRetrace);
 			}
 		}
 	}
@@ -9383,7 +9383,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", setFbbRegsSigs[j].Name, j, setFbbRegs);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", setFbbRegsSigs[j].Name, j, setFbbRegs);
 		}
 	}
 	
@@ -9431,7 +9431,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					case 4: data[i +  4] = 0x39800000; break;	// li		r12, 0
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", setVerticalRegsSigs[j].Name, j, setVerticalRegs);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", setVerticalRegsSigs[j].Name, j, setVerticalRegs);
 		}
 	}
 	
@@ -10010,7 +10010,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", VIConfigureSigs[j].Name, j, VIConfigure);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", VIConfigureSigs[j].Name, j, VIConfigure);
 		}
 	}
 	
@@ -10044,7 +10044,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					data[i + 214] = 0xA09D00FC;	// lhz		r4, 252 (r29)
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", VIConfigurePanSigs[j].Name, j, VIConfigurePan);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", VIConfigurePanSigs[j].Name, j, VIConfigurePan);
 		}
 	}
 	
@@ -10069,7 +10069,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					data[i + 14] = 0xA084000C;	// lhz		r4, 12 (r4)
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", VISetBlackSigs[j].Name, j, VISetBlack);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", VISetBlackSigs[j].Name, j, VISetBlack);
 		}
 	}
 	
@@ -10083,7 +10083,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 				
 				data[i + 1] = branch(VIGetRetraceCountHook, VIGetRetraceCount + 1);
 				
-				print_gecko("Found:[%s] @ %08X\n", VIGetRetraceCountSig.Name, VIGetRetraceCount);
+				print_gecko("Encontrado:[%s] @ %08X\n", VIGetRetraceCountSig.Name, VIGetRetraceCount);
 			}
 		}
 	}
@@ -10107,7 +10107,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 				data[i + 0] = 0x38600001;	// li		r3, 1
 				data[i + 1] = 0x4E800020;	// blr
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", VIGetNextFieldSigs[j].Name, j, VIGetNextField);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", VIGetNextFieldSigs[j].Name, j, VIGetNextField);
 		}
 	}
 	
@@ -10127,7 +10127,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 				data[i + 0] = 0x38600001;	// li		r3, 1
 				data[i + 1] = 0x4E800020;	// blr
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", VIGetDTVStatusSigs[j].Name, j, VIGetDTVStatus);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", VIGetDTVStatusSigs[j].Name, j, VIGetDTVStatus);
 		}
 	}
 	
@@ -10153,7 +10153,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					case 10: data[i +  503] = 0x38600001; break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __GXInitGXSigs[j].Name, j, __GXInitGX);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __GXInitGXSigs[j].Name, j, __GXInitGX);
 		}
 	}
 	
@@ -10169,7 +10169,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					memset(data + i, 0, GXAdjustForOverscanSigs[j].Length * sizeof(u32));
 					memcpy(data + i, GXAdjustForOverscanSigs[j].Patch, GXAdjustForOverscanSigs[j].PatchLength);
 				}
-				print_gecko("Found:[%s$%i] @ %08X\n", GXAdjustForOverscanSigs[j].Name, j, GXAdjustForOverscan);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", GXAdjustForOverscanSigs[j].Name, j, GXAdjustForOverscan);
 			}
 		}
 		
@@ -10200,7 +10200,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					if (GXSetDispCopyYScaleSigs[j].Patch != GXSetDispCopyYScalePatch2)
 						data[i + 6] |= __GXData;
 				}
-				print_gecko("Found:[%s$%i] @ %08X\n", GXSetDispCopyYScaleSigs[j].Name, j, GXSetDispCopyYScale);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", GXSetDispCopyYScaleSigs[j].Name, j, GXSetDispCopyYScale);
 			}
 		}
 	}
@@ -10217,7 +10217,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					memset(data + i, 0, GXSetCopyFilterSigs[j].Length * sizeof(u32));
 					memcpy(data + i, GXSetCopyFilterSigs[j].Patch, GXSetCopyFilterSigs[j].PatchLength);
 				}
-				print_gecko("Found:[%s$%i] @ %08X\n", GXSetCopyFilterSigs[j].Name, j, GXSetCopyFilter);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", GXSetCopyFilterSigs[j].Name, j, GXSetCopyFilter);
 			}
 		}
 	}
@@ -10250,7 +10250,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					if (GXSetBlendModeSigs[j].Patch == GXSetBlendModePatch2)
 						data[i + 21] |= __GXData;
 				}
-				print_gecko("Found:[%s$%i] @ %08X\n", GXSetBlendModeSigs[j].Name, j, GXSetBlendMode);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", GXSetBlendModeSigs[j].Name, j, GXSetBlendMode);
 			}
 		}
 	}
@@ -10268,7 +10268,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 				
 				data[i + GXCopyDispSigs[j].Length - 1] = branch(GXCopyDispHook, GXCopyDisp + GXCopyDispSigs[j].Length - 1);
 				
-				print_gecko("Found:[%s$%i] @ %08X\n", GXCopyDispSigs[j].Name, j, GXCopyDisp);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", GXCopyDispSigs[j].Name, j, GXCopyDisp);
 			}
 		}
 		
@@ -10296,7 +10296,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 						}
 						break;
 				}
-				print_gecko("Found:[%s$%i] @ %08X\n", GXSetViewportSigs[j].Name, j, GXSetViewport);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", GXSetViewportSigs[j].Name, j, GXSetViewport);
 			}
 		}
 		
@@ -10316,7 +10316,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					data[i + 2] |= ((u32)GXSetViewportJitter + GXSetViewportJitterSigs[j].PatchLength + 0x8000) >> 16;
 					data[i + 4] |= ((u32)GXSetViewportJitter + GXSetViewportJitterSigs[j].PatchLength) & 0xFFFF;
 				}
-				print_gecko("Found:[%s$%i] @ %08X\n", GXSetViewportJitterSigs[j].Name, j, GXSetViewportJitter);
+				print_gecko("Encontrado:[%s$%i] @ %08X\n", GXSetViewportJitterSigs[j].Name, j, GXSetViewportJitter);
 			}
 		}
 		
@@ -10334,7 +10334,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					data[i + 1] |= ((u32)__GXSetViewport + __GXSetViewportSigs[j].PatchLength + 0x8000) >> 16;
 					data[i + 3] |= ((u32)__GXSetViewport + __GXSetViewportSigs[j].PatchLength) & 0xFFFF;
 				}
-				print_gecko("Found:[%s] @ %08X\n", __GXSetViewportSigs[j].Name, __GXSetViewport);
+				print_gecko("Encontrado:[%s] @ %08X\n", __GXSetViewportSigs[j].Name, __GXSetViewport);
 			}
 		}
 	}
@@ -10374,7 +10374,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					data[i + 1445] = 0x11081828;	// ps_sub	f8, f8, f3
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __THPDecompressiMCURow512x448Sigs[j].Name, j, __THPDecompressiMCURow512x448);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __THPDecompressiMCURow512x448Sigs[j].Name, j, __THPDecompressiMCURow512x448);
 		}
 	}
 	
@@ -10413,7 +10413,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					data[i + 1445] = 0x11081828;	// ps_sub	f8, f8, f3
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __THPDecompressiMCURow640x480Sigs[j].Name, j, __THPDecompressiMCURow640x480);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __THPDecompressiMCURow640x480Sigs[j].Name, j, __THPDecompressiMCURow640x480);
 		}
 	}
 	
@@ -10452,7 +10452,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 					data[i + 1448] = 0x11081828;	// ps_sub	f8, f8, f3
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __THPDecompressiMCURowNxNSigs[j].Name, j, __THPDecompressiMCURowNxN);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __THPDecompressiMCURowNxNSigs[j].Name, j, __THPDecompressiMCURowNxN);
 		}
 	}
 	
@@ -10462,7 +10462,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 		if (IDct64_GC) {
 			data[i + 107] = 0x1272982A;	// ps_add	f19, f18, f19
 			
-			print_gecko("Found:[%s] @ %08X\n", IDct64_GCSig.Name, IDct64_GC);
+			print_gecko("Encontrado:[%s] @ %08X\n", IDct64_GCSig.Name, IDct64_GC);
 		}
 	}
 	
@@ -10472,7 +10472,7 @@ void Patch_Video(u32 *data, u32 length, int dataType)
 		if (IDct10_GC) {
 			data[i + 76] = 0x1272982A;	// ps_add	f19, f18, f19
 			
-			print_gecko("Found:[%s] @ %08X\n", IDct10_GCSig.Name, IDct10_GC);
+			print_gecko("Encontrado:[%s] @ %08X\n", IDct10_GCSig.Name, IDct10_GC);
 		}
 	}
 }
@@ -10508,7 +10508,7 @@ void Patch_Widescreen(u32 *data, u32 length, int dataType)
 			u32 *MTXFrustum = Calc_ProperAddress(data, dataType, i * sizeof(u32));
 			u32 *MTXFrustumHook = NULL;
 			if (MTXFrustum) {
-				print_gecko("Found:[%s] @ %08X\n", MTXFrustumSig.Name, MTXFrustum);
+				print_gecko("Encontrado:[%s] @ %08X\n", MTXFrustumSig.Name, MTXFrustum);
 				MTXFrustumHook = installPatch(MTX_FRUSTUMHOOK);
 				MTXFrustumHook[7] = branch(MTXFrustum + 1, MTXFrustumHook + 7);
 				data[i] = branch(MTXFrustumHook, MTXFrustum);
@@ -10524,7 +10524,7 @@ void Patch_Widescreen(u32 *data, u32 length, int dataType)
 			u32 *MTXLightFrustum = Calc_ProperAddress(data, dataType, i * sizeof(u32));
 			u32 *MTXLightFrustumHook = NULL;
 			if (MTXLightFrustum) {
-				print_gecko("Found:[%s] @ %08X\n", MTXLightFrustumSig.Name, MTXLightFrustum);
+				print_gecko("Encontrado:[%s] @ %08X\n", MTXLightFrustumSig.Name, MTXLightFrustum);
 				MTXLightFrustumHook = installPatch(MTX_LIGHTFRUSTUMHOOK);
 				MTXLightFrustumHook[7] = branch(MTXLightFrustum + 3, MTXLightFrustumHook + 7);
 				data[i + 2] = branch(MTXLightFrustumHook, MTXLightFrustum + 2);
@@ -10540,7 +10540,7 @@ void Patch_Widescreen(u32 *data, u32 length, int dataType)
 			u32 *MTXPerspective = Calc_ProperAddress(data, dataType, i * sizeof(u32));
 			u32 *MTXPerspectiveHook = NULL;
 			if (MTXPerspective) {
-				print_gecko("Found:[%s] @ %08X\n", MTXPerspectiveSig.Name, MTXPerspective);
+				print_gecko("Encontrado:[%s] @ %08X\n", MTXPerspectiveSig.Name, MTXPerspective);
 				MTXPerspectiveHook = installPatch(MTX_PERSPECTIVEHOOK);
 				MTXPerspectiveHook[5] = branch(MTXPerspective + 21, MTXPerspectiveHook + 5);
 				data[i + 20] = branch(MTXPerspectiveHook, MTXPerspective + 20);
@@ -10556,7 +10556,7 @@ void Patch_Widescreen(u32 *data, u32 length, int dataType)
 			u32 *MTXLightPerspective = Calc_ProperAddress(data, dataType, i * sizeof(u32));
 			u32 *MTXLightPerspectiveHook = NULL;
 			if (MTXLightPerspective) {
-				print_gecko("Found:[%s] @ %08X\n", MTXLightPerspectiveSig.Name, MTXLightPerspective);
+				print_gecko("Encontrado:[%s] @ %08X\n", MTXLightPerspectiveSig.Name, MTXLightPerspective);
 				MTXLightPerspectiveHook = installPatch(MTX_LIGHTPERSPECTIVEHOOK);
 				MTXLightPerspectiveHook[5] = branch(MTXLightPerspective + 25, MTXLightPerspectiveHook + 5);
 				data[i + 24] = branch(MTXLightPerspectiveHook, MTXLightPerspective + 24);
@@ -10573,7 +10573,7 @@ void Patch_Widescreen(u32 *data, u32 length, int dataType)
 				u32 *MTXOrtho = Calc_ProperAddress(data, dataType, i * sizeof(u32));
 				u32 *MTXOrthoHook = NULL;
 				if (MTXOrtho) {
-					print_gecko("Found:[%s] @ %08X\n", MTXOrthoSig.Name, MTXOrtho);
+					print_gecko("Encontrado:[%s] @ %08X\n", MTXOrthoSig.Name, MTXOrtho);
 					MTXOrthoHook = installPatch(MTX_ORTHOHOOK);
 					MTXOrthoHook[32] = branch(MTXOrtho + 1, MTXOrthoHook + 32);
 					data[i] = branch(MTXOrthoHook, MTXOrtho);
@@ -10595,7 +10595,7 @@ void Patch_Widescreen(u32 *data, u32 length, int dataType)
 					u32 *GXSetScissor = Calc_ProperAddress(data, dataType, i * sizeof(u32));
 					u32 *GXSetScissorHook = NULL;
 					if (GXSetScissor) {
-						print_gecko("Found:[%s$%i] @ %08X\n", GXSetScissorSigs[j].Name, j, GXSetScissor);
+						print_gecko("Encontrado:[%s$%i] @ %08X\n", GXSetScissorSigs[j].Name, j, GXSetScissor);
 						GXSetScissorHook = installPatch(GX_SETSCISSORHOOK);
 						GXSetScissorHook[ 0] = data[i];
 						GXSetScissorHook[ 1] = j == 1 ? 0x800801E8 : 0x800701E8;
@@ -10620,7 +10620,7 @@ void Patch_Widescreen(u32 *data, u32 length, int dataType)
 					u32 *GXSetProjection = Calc_ProperAddress(data, dataType, i * sizeof(u32));
 					u32 *GXSetProjectionHook = NULL;
 					if (GXSetProjection) {
-						print_gecko("Found:[%s$%i] @ %08X\n", GXSetProjectionSigs[j].Name, j, GXSetProjection);
+						print_gecko("Encontrado:[%s$%i] @ %08X\n", GXSetProjectionSigs[j].Name, j, GXSetProjection);
 						GXSetProjectionHook = installPatch(GX_SETPROJECTIONHOOK);
 						GXSetProjectionHook[5] = branch(GXSetProjection + 4, GXSetProjectionHook + 5);
 						data[i + 3] = branch(GXSetProjectionHook, GXSetProjection + 3);
@@ -10654,7 +10654,7 @@ int Patch_TexFilt(u32 *data, u32 length, int dataType)
 				u32 *GXInitTexObjLOD = Calc_ProperAddress(data, dataType, i * sizeof(u32));
 				u32 *GXInitTexObjLODHook = NULL;
 				if (GXInitTexObjLOD) {
-					print_gecko("Found:[%s$%i] @ %08X\n", GXInitTexObjLODSigs[j].Name, j, GXInitTexObjLOD);
+					print_gecko("Encontrado:[%s$%i] @ %08X\n", GXInitTexObjLODSigs[j].Name, j, GXInitTexObjLOD);
 					GXInitTexObjLODHook = installPatch(GX_INITTEXOBJLODHOOK);
 					GXInitTexObjLODHook[6] = data[i];
 					GXInitTexObjLODHook[7] = branch(GXInitTexObjLOD + 1, GXInitTexObjLODHook + 7);
@@ -10728,7 +10728,7 @@ int Patch_FontEncode(u32 *data, u32 length)
 			patched++;
 		}
 	}
-	print_gecko("Patch:[fontEncode] applied %d times\n", patched);
+	print_gecko("Parche:[fontEncode] aplicado %d veces\n", patched);
 	return patched;
 }
 
@@ -10834,13 +10834,13 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 			if(mode == 1 && memcmp(addr_start,GXSETVAT_PAL_orig,sizeof(GXSETVAT_PAL_orig))==0) 
 			{
 				memcpy(addr_start, GXSETVAT_PAL_patched, sizeof(GXSETVAT_PAL_patched));
-				print_gecko("Patched:[__GXSetVAT] PAL\r\n");
+				print_gecko("Parcheado:[__GXSetVAT] PAL\r\n");
 				patched=1;
 			}
 			if(mode == 2 && memcmp(addr_start,GXSETVAT_NTSC_orig,sizeof(GXSETVAT_NTSC_orig))==0) 
 			{
 				memcpy(addr_start, GXSETVAT_NTSC_patched, sizeof(GXSETVAT_NTSC_patched));
-				print_gecko("Patched:[__GXSetVAT] NTSC\r\n");
+				print_gecko("Parcheado:[__GXSetVAT] NTSC\r\n");
 				patched=1;
 			}
 			addr_start += 4;
@@ -10907,7 +10907,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x8135DDE0 - 0x81300000 + 0x20, BS2Pal520IntAa, sizeof(BS2Pal520IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.0");
 				patched++;
 				break;
 			case 1448280:
@@ -10971,7 +10971,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x8135FD00 - 0x81300000 + 0x20, BS2Pal520IntAa, sizeof(BS2Pal520IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.0");
 				patched++;
 				break;
 			case 1449848:
@@ -11039,7 +11039,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x81360160 - 0x81300000 + 0x20, BS2Pal520IntAa, sizeof(BS2Pal520IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "DEV  Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "DEV  Revision 1.0");
 				patched++;
 				break;
 			case 1583088:
@@ -11101,7 +11101,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x8137D9F0 - 0x81300000 + 0x20, BS2Pal520IntAa, sizeof(BS2Pal520IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.1");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.1");
 				patched++;
 				break;
 			case 1763048:
@@ -11142,7 +11142,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x81380FD0 - 0x81300000 + 0x20, BS2Ntsc448IntAa, sizeof(BS2Ntsc448IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "PAL  Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "PAL  Revision 1.0");
 				patched++;
 				break;
 			case 1760152:
@@ -11184,7 +11184,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x81380384 - 0x81300000 + 0x20, BS2Ntsc448IntAa, sizeof(BS2Ntsc448IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "PAL  Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "PAL  Revision 1.0");
 				patched++;
 				break;
 			case 1561776:
@@ -11227,7 +11227,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x8137D910 - 0x81300000 + 0x20, BS2Pal520IntAa, sizeof(BS2Pal520IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "MPAL Revision 1.1");
+				print_gecko("Parcheado:[%s]\n", "MPAL Revision 1.1");
 				patched++;
 				break;
 			case 1607576:
@@ -11294,7 +11294,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					*(u32 *)(data + 0x813111C4 - 0x81300000 + 0x20) = 0x9B830037;
 					*(u32 *)(data + 0x813111C8 - 0x81300000 + 0x20) = 0x99630035;
 				}
-				print_gecko("Patched:[%s]\n", "TDEV Revision 1.1");
+				print_gecko("Parcheado:[%s]\n", "TDEV Revision 1.1");
 				patched++;
 				break;
 			case 1586352:
@@ -11356,7 +11356,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x8137ECB8 - 0x81300000 + 0x20, BS2Pal520IntAa, sizeof(BS2Pal520IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.2");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.2");
 				patched++;
 				break;
 			case 1587504:
@@ -11418,7 +11418,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x8137F138 - 0x81300000 + 0x20, BS2Pal520IntAa, sizeof(BS2Pal520IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.2");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.2");
 				patched++;
 				break;
 			case 1766768:
@@ -11459,7 +11459,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					memcpy(data + 0x81382470 - 0x81300000 + 0x20, BS2Ntsc448IntAa, sizeof(BS2Ntsc448IntAa));
 				}
-				print_gecko("Patched:[%s]\n", "PAL  Revision 1.2");
+				print_gecko("Parcheado:[%s]\n", "PAL  Revision 1.2");
 				patched++;
 				break;
 		}
@@ -11480,7 +11480,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x8008789C - 0x800056A0 + 0x2600) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11501,7 +11501,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x80082090 - 0x800056A0 + 0x2600) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11522,7 +11522,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x80038ECC - 0x800055E0 + 0x25E0) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11543,7 +11543,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x80086FDC - 0x800056A0 + 0x2600) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11564,7 +11564,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x80036740 - 0x800055E0 + 0x25E0) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11574,7 +11574,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Strip anti-debugging code.
 				*(u32 *)(data + 0x80005CA4 - 0x800055E0 + 0x25E0) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11595,7 +11595,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x8003898C - 0x800055E0 + 0x25E0) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11612,7 +11612,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					*(s16 *)(data + 0x801F1FF2 - 0x800056C0 + 0x2600) = memSize < 32 ? 64 : memSize;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11629,7 +11629,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					*(s16 *)(data + 0x801FF53E - 0x800056C0 + 0x2600) = memSize < 32 ? 64 : memSize;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11639,7 +11639,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix race condition with ARAM DMA transfer.
 				*(u32 *)(data + 0x8000AF34 - 0x800032C0 + 0x2C0) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11649,7 +11649,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix race condition with ARAM DMA transfer.
 				*(u32 *)(data + 0x8000B7EC - 0x800032E0 + 0x2E0) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11674,7 +11674,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					*(s16 *)(data + 0x800F0502 - 0x800129E0 + 0x2520) = memSize < 32 ? 64 : memSize;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11699,7 +11699,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					*(s16 *)(data + 0x800E6BB6 - 0x80012260 + 0x2520) = memSize < 32 ? 64 : memSize;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11723,7 +11723,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x8000563C - 0x800055E0 + 0x25E0) = 0x60000000;
 				*(u32 *)(data + 0x80005640 - 0x800055E0 + 0x25E0) = 0x38000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11753,7 +11753,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x80005654 - 0x800055E0 + 0x25E0) = 0x60000000;
 				*(u32 *)(data + 0x80005658 - 0x800055E0 + 0x25E0) = 0x38000005;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11777,7 +11777,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x8000563C - 0x800055E0 + 0x25E0) = 0x60000000;
 				*(u32 *)(data + 0x80005640 - 0x800055E0 + 0x25E0) = 0x38000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11787,14 +11787,14 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x8001501C - 0x800134A0 + 0x4A0) = 0x807E0000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 266324:
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x807023F0 - 0x807003A0 + 0x500) = 0x807E0000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11808,7 +11808,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x80014598 - 0x800034A0 + 0x4A0) = 0x3D208000;
 				*(u32 *)(data + 0x8001459C - 0x800034A0 + 0x4A0) = 0x812900EC;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11818,7 +11818,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix race condition with ARAM DMA transfer.
 				*(u32 *)(data + 0x800339E4 - 0x80006820 + 0x2620) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11828,7 +11828,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix race condition with ARAM DMA transfer.
 				*(u32 *)(data + 0x80065FFC - 0x80006820 + 0x2620) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11838,7 +11838,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix race condition with ARAM DMA transfer.
 				*(u32 *)(data + 0x80033D60 - 0x80006820 + 0x2620) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11848,7 +11848,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix race condition with ARAM DMA transfer.
 				*(u32 *)(data + 0x80150E94 - 0x80006760 + 0x2620) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11858,7 +11858,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix race condition with ARAM DMA transfer.
 				*(u32 *)(data + 0x8015110C - 0x80006760 + 0x2620) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11868,14 +11868,14 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x80014C54 - 0x800134A0 + 0x4A0) = 0x807E0000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 339500:
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x80701C38 - 0x807003A0 + 0x500) = 0x807E0000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11885,14 +11885,14 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x80014C54 - 0x800134A0 + 0x4A0) = 0x807E0000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 338376:
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x80701C38 - 0x807003A0 + 0x500) = 0x807E0000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11902,14 +11902,14 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x8001501C - 0x800134A0 + 0x4A0) = 0x807E0000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 268372:
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x807023F0 - 0x807003A0 + 0x500) = 0x807E0000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11925,7 +11925,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x806C7E2A - 0x806C7500 + 0x2600) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x806C7E32 - 0x806C7500 + 0x2600) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 213952:
@@ -11938,7 +11938,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x8000F566 - 0x8000E780 + 0x2620) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x8000F56E - 0x8000E780 + 0x2620) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 5233088:
@@ -11948,7 +11948,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x8036F5C6 - 0x8000F740 + 0x2620) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x8036F5CE - 0x8000F740 + 0x2620) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -11964,7 +11964,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x806C7EEA - 0x806C75C0 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x806C7EF2 - 0x806C75C0 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 214880:
@@ -11977,7 +11977,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x8000F566 - 0x8000E780 + 0x2620) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x8000F56E - 0x8000E780 + 0x2620) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 5234880:
@@ -11987,7 +11987,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x8036F1FA - 0x8000F740 + 0x2620) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x8036F202 - 0x8000F740 + 0x2620) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 5235488:
@@ -11997,7 +11997,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x8036F446 - 0x8000F740 + 0x2620) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x8036F44E - 0x8000F740 + 0x2620) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12013,7 +12013,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x806C805E - 0x806C75C0 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x806C8066 - 0x806C75C0 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 220800:
@@ -12026,7 +12026,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x8000F742 - 0x8000E820 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x8000F74A - 0x8000E820 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 4785536:
@@ -12039,7 +12039,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x80315B92 - 0x8000E680 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x80315B9A - 0x8000E680 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12055,7 +12055,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x806C7EEA - 0x806C75C0 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x806C7EF2 - 0x806C75C0 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 222048:
@@ -12068,7 +12068,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x8000F606 - 0x8000E820 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x8000F60E - 0x8000E820 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 4781856:
@@ -12081,7 +12081,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x80314B3A - 0x8000E680 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x80314B42 - 0x8000E680 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12097,7 +12097,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x806C805E - 0x806C75C0 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x806C8066 - 0x806C75C0 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 221152:
@@ -12110,7 +12110,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x8000F742 - 0x8000E820 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x8000F74A - 0x8000E820 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 4794720:
@@ -12123,7 +12123,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x803167F2 - 0x8000E680 + 0x26C0) = ((u32)addr + 0x8000) >> 16;
 				*(s16 *)(data + 0x803167FA - 0x8000E680 + 0x26C0) = ((u32)addr & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12138,7 +12138,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x80005B72 - 0x800056C0 + 0x2600) = (((u32)addr + 0xE00) + 0x8000) >> 16;
 				*(s16 *)(data + 0x80005B76 - 0x800056C0 + 0x2600) = (((u32)addr + 0xE00) & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12153,7 +12153,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x80005B72 - 0x800056C0 + 0x2600) = (((u32)addr + 0xE00) + 0x8000) >> 16;
 				*(s16 *)(data + 0x80005B76 - 0x800056C0 + 0x2600) = (((u32)addr + 0xE00) & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12168,7 +12168,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x80005B72 - 0x800056C0 + 0x2600) = (((u32)addr + 0xE00) + 0x8000) >> 16;
 				*(s16 *)(data + 0x80005B76 - 0x800056C0 + 0x2600) = (((u32)addr + 0xE00) & 0xFFFF);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12178,14 +12178,14 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x80500EB4 - 0x805003A0 + 0x4A0) = 0x387D2720;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 260164:
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x80500EB4 - 0x805003A0 + 0x500) = 0x387D2720;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12195,14 +12195,14 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x80500EB4 - 0x805003A0 + 0x4A0) = 0x387D2800;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 260852:
 				// Fix framebuffer initialization.
 				*(u32 *)(data + 0x80500EB4 - 0x805003A0 + 0x500) = 0x387D2800;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12232,7 +12232,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x80155A90 - 0x80014140 + 0x2620) = 0x39000002;
 				*(u32 *)(data + 0x80155A94 - 0x80014140 + 0x2620) = branchAndLink((u32 *)0x801996C8, (u32 *)0x80155A94);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12262,7 +12262,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x80151AD8 - 0x80014180 + 0x2620) = 0x39000002;
 				*(u32 *)(data + 0x80151ADC - 0x80014180 + 0x2620) = branchAndLink((u32 *)0x8019414C, (u32 *)0x80151ADC);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12292,7 +12292,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x80155AD4 - 0x80014140 + 0x2620) = 0x39000002;
 				*(u32 *)(data + 0x80155AD8 - 0x80014140 + 0x2620) = branchAndLink((u32 *)0x80199784, (u32 *)0x80155AD8);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12322,7 +12322,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x80155A6C - 0x80014140 + 0x2620) = 0x39000002;
 				*(u32 *)(data + 0x80155A70 - 0x80014140 + 0x2620) = branchAndLink((u32 *)0x801996B8, (u32 *)0x80155A70);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12336,7 +12336,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x8000DFD4 - 0x800034A0 + 0x4A0) = 0x3C608000;
 				*(u32 *)(data + 0x8000DFD8 - 0x800034A0 + 0x4A0) = 0x806300EC;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12350,7 +12350,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x8000DFD4 - 0x800034A0 + 0x4A0) = 0x3C608000;
 				*(u32 *)(data + 0x8000DFD8 - 0x800034A0 + 0x4A0) = 0x806300EC;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12364,7 +12364,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(u32 *)(data + 0x80014598 - 0x800034A0 + 0x4A0) = 0x3D208000;
 				*(u32 *)(data + 0x8001459C - 0x800034A0 + 0x4A0) = 0x812900EC;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12381,7 +12381,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					*(s16 *)(data + 0x8003758E - 0x8000AEA0 + 0x2520) = memSize < 32 ? 64 : memSize;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12398,7 +12398,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					*(s16 *)(data + 0x8003740A - 0x8000AE60 + 0x2520) = memSize < 32 ? 64 : memSize;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12415,7 +12415,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 					
 					*(s16 *)(data + 0x800374D6 - 0x8000AE60 + 0x2520) = memSize < 32 ? 64 : memSize;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12436,7 +12436,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x800875BC - 0x800056A0 + 0x2600) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 4336128:
@@ -12454,7 +12454,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x8008789C - 0x800056A0 + 0x2600) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12475,7 +12475,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x80084E70 - 0x800056A0 + 0x2600) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12496,7 +12496,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x80088574 - 0x800056A0 + 0x2600) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12517,7 +12517,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(u32 *)(data + 0x80086FDC - 0x800056A0 + 0x2600) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12537,7 +12537,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x80005CE2 - 0x800056C0 + 0x2600) = 0x019A;
 				*(s16 *)(data + 0x80005D3A - 0x800056C0 + 0x2600) = 0x019A;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 832960:
@@ -12577,7 +12577,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(s16 *)(data + 0x80007142 - 0x800056C0 + 0x2600) = 0x0199;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12594,7 +12594,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x8000592E - 0x800056C0 + 0x2600) = 0x019A;
 				*(s16 *)(data + 0x80005996 - 0x800056C0 + 0x2600) = 0x0198;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 771104:
@@ -12623,7 +12623,7 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				
 				*(s16 *)(data + 0x800068CA - 0x800056C0 + 0x2600) = 0x0199;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12643,14 +12643,14 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x800076E2 - 0x80005C80 + 0x2600) = 0x01C1;
 				*(s16 *)(data + 0x8000783E - 0x80005C80 + 0x2600) = 0x01C1;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 3771872:
 				// Strip anti-debugging code.
 				*(u32 *)(data + 0x80005DD0 - 0x800055E0 + 0x25E0) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12670,14 +12670,14 @@ int Patch_GameSpecific(void *data, u32 length, const char *gameID, int dataType)
 				*(s16 *)(data + 0x800076E2 - 0x80005C80 + 0x2600) = 0x01C1;
 				*(s16 *)(data + 0x8000783E - 0x80005C80 + 0x2600) = 0x01C1;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 3771872:
 				// Strip anti-debugging code.
 				*(u32 *)(data + 0x80005DD0 - 0x800055E0 + 0x25E0) = 0x60000000;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -12697,7 +12697,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 		memset(data + 0x200, 0, 0x200);
 		diskHeader->MaxFSTSize = GCMDisk.MaxFSTSize;
 		
-		print_gecko("Patched:[%s]\n", fileName);
+		print_gecko("Parcheado:[%s]\n", fileName);
 		patched++;
 		
 		data    += 0x440;
@@ -12708,7 +12708,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 		if (!strcmp(fileName, "bi2.bin")) {
 			*(u32 *)(data + 0x4) = 0x1800000;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GCCE01", 6) || !strncmp(gameID, "GCCP01", 6)) {
@@ -12726,7 +12726,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			
 			*(u32 *)(data + 0x2518) = __builtin_bswap32(0x03000190);
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GCCJGC", 6)) {
@@ -12744,7 +12744,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			
 			*(u32 *)(data + 0x1340) = __builtin_bswap32(0x03000138);
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GHAE08", 6)) {
@@ -12754,7 +12754,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1EFDF6) = R_PPC_NONE;
 			*(u32 *)(data + 0x1EFDF8) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "leon.rel")) {
 			*(u32 *)(data + 0x1903FC) = 0x60000000;
@@ -12762,7 +12762,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1EFF86) = R_PPC_NONE;
 			*(u32 *)(data + 0x1EFF88) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GHAJ08", 6)) {
@@ -12772,7 +12772,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1FD19A) = R_PPC_NONE;
 			*(u32 *)(data + 0x1FD19C) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "leon.rel")) {
 			*(u32 *)(data + 0x1904C4) = 0x60000000;
@@ -12780,7 +12780,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1FD30A) = R_PPC_NONE;
 			*(u32 *)(data + 0x1FD30C) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GHAP08", 6)) {
@@ -12790,7 +12790,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F0FBE) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F0FC0) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "claire_f.rel")) {
 			*(u32 *)(data + 0x1912E8) = 0x60000000;
@@ -12798,7 +12798,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F251E) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F2520) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "claire_g.rel")) {
 			*(u32 *)(data + 0x1905A8) = 0x60000000;
@@ -12806,7 +12806,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F1AE6) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F1AE8) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "claire_i.rel")) {
 			*(u32 *)(data + 0x19113C) = 0x60000000;
@@ -12814,7 +12814,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F269E) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F26A0) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "claire_s.rel")) {
 			*(u32 *)(data + 0x1912E4) = 0x60000000;
@@ -12822,7 +12822,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F281E) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F2820) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "leon.rel")) {
 			*(u32 *)(data + 0x190878) = 0x60000000;
@@ -12830,7 +12830,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F116E) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F1170) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "leon_f.rel")) {
 			*(u32 *)(data + 0x191408) = 0x60000000;
@@ -12838,7 +12838,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F25EE) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F25F0) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "leon_g.rel")) {
 			*(u32 *)(data + 0x190638) = 0x60000000;
@@ -12846,7 +12846,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F1AF6) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F1AF8) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "leon_i.rel")) {
 			*(u32 *)(data + 0x19125C) = 0x60000000;
@@ -12854,7 +12854,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F278E) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F2790) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "leon_s.rel")) {
 			*(u32 *)(data + 0x191380) = 0x60000000;
@@ -12862,14 +12862,14 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1F286E) = R_PPC_NONE;
 			*(u32 *)(data + 0x1F2870) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GHQE7D", 6) || !strncmp(gameID, "GHQP7D", 6)) {
 		if (!strcmp(fileName, "bi2.bin")) {
 			*(u32 *)(data + 0x24) = 5;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GLEP08", 6)) {
@@ -12879,7 +12879,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1BFCE6) = R_PPC_NONE;
 			*(u32 *)(data + 0x1BFCE8) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "fra.rel")) {
 			*(u32 *)(data + 0x14D21C) = 0x60000000;
@@ -12887,7 +12887,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1C0FE6) = R_PPC_NONE;
 			*(u32 *)(data + 0x1C0FE8) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "ger.rel")) {
 			*(u32 *)(data + 0x14D020) = 0x60000000;
@@ -12895,7 +12895,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1C1886) = R_PPC_NONE;
 			*(u32 *)(data + 0x1C1888) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "ita.rel")) {
 			*(u32 *)(data + 0x14D084) = 0x60000000;
@@ -12903,7 +12903,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1C1246) = R_PPC_NONE;
 			*(u32 *)(data + 0x1C1248) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		} else if (!strcasecmp(fileName, "spa.rel")) {
 			*(u32 *)(data + 0x14D204) = 0x60000000;
@@ -12911,14 +12911,14 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			*(u8 *)(data + 0x1C1386) = R_PPC_NONE;
 			*(u32 *)(data + 0x1C1388) = 0;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GMRE70", 6) || !strncmp(gameID, "GMRP70", 6)) {
 		if (!strcmp(fileName, "bi2.bin")) {
 			*(u32 *)(data + 0x24) = 5;
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GS8P7D", 6)) {
@@ -12927,7 +12927,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 				addr = strnstr(data, "\tHeight:\t\t\t496\r\n", length);
 				if (addr) memcpy(addr, "\tHeight:\t\t\t448\r\n", 16);
 			}
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GSXD64", 6)) {
@@ -12949,7 +12949,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			strcpy(data + 0x1FF3, "/language");
 			strcpy(data + 0x1FFD, "1");
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GSXE64", 6)) {
@@ -12965,7 +12965,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			
 			strcpy(data + 0x1FF1, "Clonewars.elf");
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GSXF64", 6)) {
@@ -12987,7 +12987,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			strcpy(data + 0x1FF3, "/language");
 			strcpy(data + 0x1FFD, "2");
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GSXI64", 6)) {
@@ -13009,7 +13009,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			strcpy(data + 0x1FF3, "/language");
 			strcpy(data + 0x1FFD, "4");
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GSXJ13", 6)) {
@@ -13031,7 +13031,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			strcpy(data + 0x1FF3, "5");
 			strcpy(data + 0x1FF5, "/japanese");
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GSXP64", 6)) {
@@ -13049,7 +13049,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			strcpy(data + 0x1FEC, "Clonewars.elf");
 			strcpy(data + 0x1FFA, "/pal");
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	} else if (!strncmp(gameID, "GSXS64", 6)) {
@@ -13071,7 +13071,7 @@ int Patch_GameSpecificFile(void *data, u32 length, const char *gameID, const cha
 			strcpy(data + 0x1FF3, "/language");
 			strcpy(data + 0x1FFD, "3");
 			
-			print_gecko("Patched:[%s]\n", fileName);
+			print_gecko("Parcheado:[%s]\n", fileName);
 			patched++;
 		}
 	}
@@ -13087,7 +13087,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 			case 1435200:
 				*(s16 *)(data + 0x813007C2 - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.0");
 				patched++;
 				break;
 			case 1448280:
@@ -13102,7 +13102,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				
 				*(s16 *)(data + 0x813019AE - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.0");
 				patched++;
 				break;
 			case 1449848:
@@ -13117,19 +13117,19 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				
 				*(s16 *)(data + 0x81301CEE - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "DEV  Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "DEV  Revision 1.0");
 				patched++;
 				break;
 			case 1583088:
 				*(s16 *)(data + 0x813005EA - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.1");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.1");
 				patched++;
 				break;
 			case 1763048:
 				*(s16 *)(data + 0x813005EA - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "PAL  Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "PAL  Revision 1.0");
 				patched++;
 				break;
 			case 1760152:
@@ -13144,13 +13144,13 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				
 				*(s16 *)(data + 0x813018A6 - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "PAL  Revision 1.0");
+				print_gecko("Parcheado:[%s]\n", "PAL  Revision 1.0");
 				patched++;
 				break;
 			case 1561776:
 				*(s16 *)(data + 0x813005EA - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "MPAL Revision 1.1");
+				print_gecko("Parcheado:[%s]\n", "MPAL Revision 1.1");
 				patched++;
 				break;
 			case 1607576:
@@ -13165,25 +13165,25 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				
 				*(s16 *)(data + 0x813027A6 - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "TDEV Revision 1.1");
+				print_gecko("Parcheado:[%s]\n", "TDEV Revision 1.1");
 				patched++;
 				break;
 			case 1586352:
 				*(s16 *)(data + 0x81300926 - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.2");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.2");
 				patched++;
 				break;
 			case 1587504:
 				*(s16 *)(data + 0x81300926 - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "NTSC Revision 1.2");
+				print_gecko("Parcheado:[%s]\n", "NTSC Revision 1.2");
 				patched++;
 				break;
 			case 1766768:
 				*(s16 *)(data + 0x813006DA - 0x81300000 + 0x20) = 0x0C00;
 				
-				print_gecko("Patched:[%s]\n", "PAL  Revision 1.2");
+				print_gecko("Parcheado:[%s]\n", "PAL  Revision 1.2");
 				patched++;
 				break;
 		}
@@ -13193,7 +13193,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				// Move up DSI exception handler.
 				*(s16 *)(data + 0x802AE366 - 0x800056A0 + 0x2600) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13203,7 +13203,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				// Move up DSI exception handler.
 				*(s16 *)(data + 0x802A95B2 - 0x800056A0 + 0x2600) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13213,7 +13213,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				// Move up DSI exception handler.
 				*(s16 *)(data + 0x802AB256 - 0x800056A0 + 0x2600) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13227,7 +13227,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x801847B6 - 0x800055E0 + 0x25E0) = 56 * sizeof(u32);
 				*(s16 *)(data + 0x801847C2 - 0x800055E0 + 0x25E0) = 56 * sizeof(u32);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13243,7 +13243,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(u32 *)(data + 0x80005D84 - 0x80003100 + 0x100) = 0x7CBA02A6;
 				*(u32 *)(data + 0x80005D98 - 0x80003100 + 0x100) = 0x7CBA02A6;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13257,7 +13257,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x8010A76E - 0x800055E0 + 0x25E0) = 56 * sizeof(u32);
 				*(s16 *)(data + 0x8010A77A - 0x800055E0 + 0x25E0) = 56 * sizeof(u32);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13271,7 +13271,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x8010AF06 - 0x800055E0 + 0x25E0) = 56 * sizeof(u32);
 				*(s16 *)(data + 0x8010AF12 - 0x800055E0 + 0x25E0) = 56 * sizeof(u32);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13285,7 +13285,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x801EB886 - 0x80009080 + 0x25E0) =  0x0304;
 				*(s16 *)(data + 0x801EB8CE - 0x80009080 + 0x25E0) = -0x0308;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13299,7 +13299,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x801EB53A - 0x80009080 + 0x25E0) =  0x0304;
 				*(s16 *)(data + 0x801EB582 - 0x80009080 + 0x25E0) = -0x0308;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13313,7 +13313,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x801EB8BE - 0x80009080 + 0x25E0) =  0x0304;
 				*(s16 *)(data + 0x801EB906 - 0x80009080 + 0x25E0) = -0x0308;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13326,7 +13326,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x80004B02 - 0x80003100 + 0x100) = 13 * sizeof(u32);
 				*(s16 *)(data + 0x80004B06 - 0x80003100 + 0x100) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13339,7 +13339,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x80004B02 - 0x80003100 + 0x100) = 13 * sizeof(u32);
 				*(s16 *)(data + 0x80004B06 - 0x80003100 + 0x100) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13352,7 +13352,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x80004B02 - 0x80003100 + 0x100) = 13 * sizeof(u32);
 				*(s16 *)(data + 0x80004B06 - 0x80003100 + 0x100) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13365,7 +13365,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x80004B1E - 0x80003100 + 0x100) = 13 * sizeof(u32);
 				*(s16 *)(data + 0x80004B22 - 0x80003100 + 0x100) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13378,7 +13378,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x80004B02 - 0x80003100 + 0x100) = 13 * sizeof(u32);
 				*(s16 *)(data + 0x80004B06 - 0x80003100 + 0x100) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13392,7 +13392,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x801FA776 - 0x800056C0 + 0x2600) =  0x0304;
 				*(s16 *)(data + 0x801FA7BE - 0x800056C0 + 0x2600) = -0x0308;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13406,7 +13406,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				*(s16 *)(data + 0x801FA7A6 - 0x800056C0 + 0x2600) =  0x0304;
 				*(s16 *)(data + 0x801FA7EE - 0x800056C0 + 0x2600) = -0x0308;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13416,14 +13416,14 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				// Move up DSI exception handler.
 				*(s16 *)(data + 0x802AE0F2 - 0x800056A0 + 0x2600) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 			case 4336128:
 				// Move up DSI exception handler.
 				*(s16 *)(data + 0x802AE366 - 0x800056A0 + 0x2600) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13433,7 +13433,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				// Move up DSI exception handler.
 				*(s16 *)(data + 0x802A8B1A - 0x800056A0 + 0x2600) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13443,7 +13443,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				// Move up DSI exception handler.
 				*(s16 *)(data + 0x802B0046 - 0x800056A0 + 0x2600) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13453,7 +13453,7 @@ int Patch_GameSpecificHypervisor(void *data, u32 length, const char *gameID, int
 				// Move up DSI exception handler.
 				*(s16 *)(data + 0x802AB256 - 0x800056A0 + 0x2600) = 0x0304;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				patched++;
 				break;
 		}
@@ -13498,7 +13498,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x80105E58 - 0x800D67E0 + 0xD37E0, 704);
 				SET_VI_WIDTH(data + 0x80105ED0 - 0x800D67E0 + 0xD37E0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 1076832:
 				*(s16 *)(data + 0x80006BFE - 0x800056A0 + 0x2600) = 0;
@@ -13527,7 +13527,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x80107C18 - 0x800D83A0 + 0xD53A0, 704);
 				SET_VI_WIDTH(data + 0x80107C90 - 0x800D83A0 + 0xD53A0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GAFE01", 6) && dataType == PATCH_DOL) {
@@ -13555,7 +13555,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x800E1628 - 0x800AF860 + 0xAC860, 704);
 				SET_VI_WIDTH(data + 0x800E16A0 - 0x800AF860 + 0xAC860, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GAFJ01", 6) && dataType == PATCH_DOL) {
@@ -13583,7 +13583,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x800DAA1C - 0x800AC1C0 + 0xA91C0, 704);
 				SET_VI_WIDTH(data + 0x800DAA58 - 0x800AC1C0 + 0xA91C0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 890048:
 				*(s16 *)(data + 0x80006622 - 0x800055C0 + 0x2520) = 0;
@@ -13608,7 +13608,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x800DAF5C - 0x800AC4E0 + 0xA94E0, 704);
 				SET_VI_WIDTH(data + 0x800DAF98 - 0x800AC4E0 + 0xA94E0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GAFP01", 6) && dataType == PATCH_DOL) {
@@ -13652,7 +13652,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x800EE238 - 0x800BAFC0 + 0xB7FC0, 704);
 				SET_VI_WIDTH(data + 0x800EE2B0 - 0x800BAFC0 + 0xB7FC0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 974304:
 				*(s16 *)(data + 0x80006B4A - 0x80005680 + 0x25E0) = 574;
@@ -13693,7 +13693,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x800EEC58 - 0x800BAD60 + 0xB7D60, 704);
 				SET_VI_WIDTH(data + 0x800EECD0 - 0x800BAD60 + 0xB7D60, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 978080:
 				*(s16 *)(data + 0x80006B4A - 0x80005680 + 0x25E0) = 574;
@@ -13734,7 +13734,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x800EFB18 - 0x800BAE80 + 0xB7E80, 704);
 				SET_VI_WIDTH(data + 0x800EFB90 - 0x800BAE80 + 0xB7E80, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 973920:
 				*(s16 *)(data + 0x80006B4A - 0x80005680 + 0x25E0) = 574;
@@ -13775,7 +13775,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x800EEAD8 - 0x800BABE0 + 0xB7BE0, 704);
 				SET_VI_WIDTH(data + 0x800EEB50 - 0x800BABE0 + 0xB7BE0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 977760:
 				*(s16 *)(data + 0x80006B4A - 0x80005680 + 0x25E0) = 574;
@@ -13816,7 +13816,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x800EF9D8 - 0x800BAD00 + 0xB7D00, 704);
 				SET_VI_WIDTH(data + 0x800EFA50 - 0x800BAD00 + 0xB7D00, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GAFU01", 6) && dataType == PATCH_DOL) {
@@ -13860,7 +13860,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x800EC4B8 - 0x800B9DA0 + 0xB6DA0, 704);
 				SET_VI_WIDTH(data + 0x800EC530 - 0x800B9DA0 + 0xB6DA0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GB4E51", 6) && dataType == PATCH_DOL) {
@@ -13871,7 +13871,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x801E4328 - 0x80199FA0 + 0x196F40, 704);
 				SET_VI_WIDTH(data + 0x801E43A0 - 0x80199FA0 + 0x196F40, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GB4P51", 6) && dataType == PATCH_DOL) {
@@ -13884,7 +13884,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				if (in_range(swissSettings.gameVMode, 1, 7))
 					*(s16 *)(data + 0x80008BD2 - 0x80005800 + 0x2620) = 0;
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GBOE51", 6) && dataType == PATCH_DOL) {
@@ -13895,7 +13895,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x801D3600 - 0x80189060 + 0x186040, 704);
 				SET_VI_WIDTH(data + 0x801D3678 - 0x80189060 + 0x186040, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GBOP51", 6) && dataType == PATCH_DOL) {
@@ -13911,7 +13911,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					*(s16 *)(data + 0x800ADF46 - 0x800057E0 + 0x2600) = (0x801D37BC + 0x8000) >> 16;
 					*(s16 *)(data + 0x800ADF4E - 0x800057E0 + 0x2600) = (0x801D37BC & 0xFFFF);
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GEDE01", 6) && dataType == PATCH_DOL) {
@@ -13924,7 +13924,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802FEFD4 - 0x8023B940 + 0x238940, 704);
 				SET_VI_WIDTH(data + 0x802FF04C - 0x8023B940 + 0x238940, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GEDJ01", 6) && dataType == PATCH_DOL) {
@@ -13937,7 +13937,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802F1114 - 0x8023C240 + 0x239240, 704);
 				SET_VI_WIDTH(data + 0x802F118C - 0x8023C240 + 0x239240, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GEDP01", 6) && dataType == PATCH_DOL) {
@@ -13957,7 +13957,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					
 					*(u32 *)(data + 0x8061EB18 - 0x8061D420 + 0x303FA0) = 0x80301140;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GEDW01", 6) && dataType == PATCH_DOL) {
@@ -13970,7 +13970,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802EBD34 - 0x8023B700 + 0x238700, 704);
 				SET_VI_WIDTH(data + 0x802EBDAC - 0x8023B700 + 0x238700, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GEME7F", 6) && dataType == PATCH_DOL) {
@@ -13987,7 +13987,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					
 					*(u32 *)(data + 0x806D0898 - 0x806D06C0 + 0x169120) = 0x801671CC;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GEMJ28", 6) && dataType == PATCH_DOL) {
@@ -14004,7 +14004,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					
 					*(u32 *)(data + 0x806D0660 - 0x806D0480 + 0x169000) = 0x801670A4;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GEMP7F", 6) && dataType == PATCH_DOL) {
@@ -14059,7 +14059,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					
 					*(u32 *)(data + 0x806D0F58 - 0x806D0D80 + 0x1698C0) = 0x801679CC;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GK7E08", 6) && dataType == PATCH_DOL) {
@@ -14103,7 +14103,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802B1070 - 0x80269E80 + 0x266E80, 704);
 				SET_VI_WIDTH(data + 0x802B10E8 - 0x80269E80 + 0x266E80, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GK7J08", 6) && dataType == PATCH_DOL) {
@@ -14147,7 +14147,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802B70F0 - 0x8026C680 + 0x269680, 704);
 				SET_VI_WIDTH(data + 0x802B7168 - 0x8026C680 + 0x269680, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GK7P08", 6) && dataType == PATCH_DOL) {
@@ -14177,7 +14177,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802C81F4 - 0x8027D200 + 0x27A200, 704);
 				SET_VI_WIDTH(data + 0x802C826C - 0x8027D200 + 0x27A200, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GKDP01", 6) && dataType == PATCH_DOL) {
@@ -14193,7 +14193,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x80101A18 - 0x800ECE80 + 0xE9E80, 704);
 				SET_VI_WIDTH(data + 0x80101A90 - 0x800ECE80 + 0xE9E80, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GLME01", 6) && dataType == PATCH_DOL) {
@@ -14205,7 +14205,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x80395C7C - 0x80218100 + 0x215100, 704);
 				SET_VI_WIDTH(data + 0x80395CB8 - 0x80218100 + 0x215100, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GLMJ01", 6) && dataType == PATCH_DOL) {
@@ -14217,7 +14217,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x8038ABDC - 0x8020D3E0 + 0x20A3E0, 704);
 				SET_VI_WIDTH(data + 0x8038AC18 - 0x8020D3E0 + 0x20A3E0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GLMP01", 6) && dataType == PATCH_DOL) {
@@ -14236,7 +14236,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					
 					*(u32 *)(data + 0x804BD630 - 0x804BD620 + 0x384E80) = 0x803908D4;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GPIE01", 6) && dataType == PATCH_DOL) {
@@ -14248,7 +14248,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802E8D28 - 0x80222D20 + 0x21FD20, 704);
 				SET_VI_WIDTH(data + 0x802E8D64 - 0x80222D20 + 0x21FD20, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 3102592:
 				SET_VI_WIDTH(data + 0x802A5704 - 0x80222DC0 + 0x21FDC0, 704);
@@ -14257,7 +14257,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802E8DC8 - 0x80222DC0 + 0x21FDC0, 704);
 				SET_VI_WIDTH(data + 0x802E8E04 - 0x80222DC0 + 0x21FDC0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GPIJ01", 6) && dataType == PATCH_DOL) {
@@ -14269,7 +14269,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802EEF08 - 0x80227EA0 + 0x224EA0, 704);
 				SET_VI_WIDTH(data + 0x802EEF44 - 0x80227EA0 + 0x224EA0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 3128832:
 				SET_VI_WIDTH(data + 0x802AB0AC - 0x80228380 + 0x225380, 704);
@@ -14278,7 +14278,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x802EF3E8 - 0x80228380 + 0x225380, 704);
 				SET_VI_WIDTH(data + 0x802EF424 - 0x80228380 + 0x225380, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GPIP01", 6) && dataType == PATCH_DOL) {
@@ -14301,7 +14301,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					
 					*(f32 *)(data + 0x803ED5B0 - 0x803ED120 + 0x2F3DE0) = 1.0f;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GPTP41", 6) && dataType == PATCH_DOL) {
@@ -14319,7 +14319,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					*(s16 *)(data + 0x801B25B2 - 0x8002B240 + 0x2600) = 640;
 					*(s16 *)(data + 0x801B25C2 - 0x8002B240 + 0x2600) = 448;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 639584:
 				if (in_range(swissSettings.gameVMode, 1, 7)) {
@@ -14328,7 +14328,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					*(s16 *)(data + 0x8002E676 - 0x8000B400 + 0x2600) = 40;
 					*(s16 *)(data + 0x8002E67E - 0x8000B400 + 0x2600) = 40;
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GSAE01", 6) && dataType == PATCH_DOL) {
@@ -14353,7 +14353,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x8032E698 - 0x802C2D60 + 0x2BFD60, 704);
 				SET_VI_WIDTH(data + 0x8032E710 - 0x802C2D60 + 0x2BFD60, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 3402176:
 				memset(data + 0x80049680 - 0x800066E0 + 0x2620, 0, 0x800496CC - 0x80049680);
@@ -14375,7 +14375,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x8032F2F0 - 0x802C34E0 + 0x2C04E0, 704);
 				SET_VI_WIDTH(data + 0x8032F368 - 0x802C34E0 + 0x2C04E0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GSAJ01", 6) && dataType == PATCH_DOL) {
@@ -14400,7 +14400,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x8032E7B8 - 0x802C2E60 + 0x2BFE60, 704);
 				SET_VI_WIDTH(data + 0x8032E830 - 0x802C2E60 + 0x2BFE60, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 3402176:
 				memset(data + 0x80049680 - 0x800066E0 + 0x2620, 0, 0x800496CC - 0x80049680);
@@ -14422,7 +14422,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x8032F2F0 - 0x802C34E0 + 0x2C04E0, 704);
 				SET_VI_WIDTH(data + 0x8032F368 - 0x802C34E0 + 0x2C04E0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GSAP01", 6) && dataType == PATCH_DOL) {
@@ -14450,7 +14450,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					*(s16 *)(data + 0x80020FFA - 0x800066E0 + 0x2620) = (0x8032FEAC + 0x8000) >> 16;
 					*(s16 *)(data + 0x80020FFE - 0x800066E0 + 0x2620) = (0x8032FEAC & 0xFFFF);
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 			case 3405600:
 				memset(data + 0x8004971C - 0x800066E0 + 0x2620, 0, 0x80049768 - 0x8004971C);
@@ -14475,7 +14475,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					*(s16 *)(data + 0x80020FFA - 0x800066E0 + 0x2620) = (0x8033006C + 0x8000) >> 16;
 					*(s16 *)(data + 0x80020FFE - 0x800066E0 + 0x2620) = (0x8033006C & 0xFFFF);
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GWRE01", 6) && dataType == PATCH_DOL) {
@@ -14485,7 +14485,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x8034145C - 0x80173DA0 + 0x170DA0, 704);
 				SET_VI_WIDTH(data + 0x80341498 - 0x80173DA0 + 0x170DA0, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GWRJ01", 6) && dataType == PATCH_DOL) {
@@ -14495,7 +14495,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x8033E21C - 0x80170880 + 0x16D880, 704);
 				SET_VI_WIDTH(data + 0x8033E258 - 0x80170880 + 0x16D880, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GWRP01", 6) && dataType == PATCH_DOL) {
@@ -14507,7 +14507,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x80343FFC - 0x80176760 + 0x173760, 704);
 				SET_VI_WIDTH(data + 0x80344038 - 0x80176760 + 0x173760, 704);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if ((!strncmp(gameID, "GX2D52", 6) || !strncmp(gameID, "GX2P52", 6) || !strncmp(gameID, "GX2S52", 6)) && dataType == PATCH_DOL) {
@@ -14518,7 +14518,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					*(s16 *)(data + 0x80010A1E - 0x80005760 + 0x2540) = VI_EURGB60;
 					*(s16 *)(data + 0x80010A22 - 0x80005760 + 0x2540) = (0x80368D5C & 0xFFFF);
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GXLP52", 6) && dataType == PATCH_DOL) {
@@ -14529,7 +14529,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					*(s16 *)(data + 0x8000E9FA - 0x80005760 + 0x2540) = VI_EURGB60;
 					*(s16 *)(data + 0x8000E9FE - 0x80005760 + 0x2540) = (0x80384784 & 0xFFFF);
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GXLX52", 6) && dataType == PATCH_DOL) {
@@ -14540,7 +14540,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 					*(s16 *)(data + 0x8000E9FA - 0x80005760 + 0x2540) = VI_EURGB60;
 					*(s16 *)(data + 0x8000E9FE - 0x80005760 + 0x2540) = (0x803848C4 & 0xFFFF);
 				}
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GZLE01", 6) && dataType == PATCH_DOL) {
@@ -14549,7 +14549,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x803716F0 - 0x80371580 + 0x36E580, 676);
 				SET_VI_WIDTH(data + 0x8037172C - 0x80371580 + 0x36E580, 676);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GZLJ01", 6) && dataType == PATCH_DOL) {
@@ -14558,7 +14558,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x80364B90 - 0x80364A20 + 0x361A20, 676);
 				SET_VI_WIDTH(data + 0x80364BCC - 0x80364A20 + 0x361A20, 676);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	} else if (!strncmp(gameID, "GZLP01", 6) && dataType == PATCH_DOL) {
@@ -14573,7 +14573,7 @@ void Patch_GameSpecificVideo(void *data, u32 length, const char *gameID, int dat
 				SET_VI_WIDTH(data + 0x803783D0 - 0x80378260 + 0x375260, 640);
 				SET_VI_WIDTH(data + 0x8037840C - 0x80378260 + 0x375260, 676);
 				
-				print_gecko("Patched:[%.6s]\n", gameID);
+				print_gecko("Parcheado:[%.6s]\n", gameID);
 				break;
 		}
 	}
@@ -15796,7 +15796,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 				data[i + 0] = 0x38600000;	// li		r3, 0
 				data[i + 1] = 0x4E800020;	// blr
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", InitializeUARTSigs[j].Name, j, InitializeUART);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", InitializeUARTSigs[j].Name, j, InitializeUART);
 			patched++;
 		}
 	}
@@ -15810,7 +15810,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 				memset(data + i, 0, WriteUARTNSigs[j].Length * sizeof(u32));
 				memcpy(data + i, WriteUARTNSigs[j].Patch, WriteUARTNSigs[j].PatchLength);
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", WriteUARTNSigs[j].Name, j, WriteUARTN);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", WriteUARTNSigs[j].Name, j, WriteUARTN);
 			patched++;
 		}
 	}
@@ -15831,7 +15831,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 					case 6: data[i + 6] = 0x3BA00000 | ((swissSettings.forcePollRate - 1) & 0xFFFF); break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", SISetSamplingRateSigs[j].Name, j, SISetSamplingRate);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", SISetSamplingRateSigs[j].Name, j, SISetSamplingRate);
 			patched++;
 		}
 	}
@@ -15845,7 +15845,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 				if (j == 2)
 					data[i + 8] = 0x3BA00000 | ((swissSettings.forcePollRate - 1) & 0xFFFF);
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", SIRefreshSamplingRateSigs[j].Name, j, SIRefreshSamplingRate);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", SIRefreshSamplingRateSigs[j].Name, j, SIRefreshSamplingRate);
 			patched++;
 		}
 	}
@@ -15923,7 +15923,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 						break;
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", UpdateOriginSigs[j].Name, j, UpdateOrigin);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", UpdateOriginSigs[j].Name, j, UpdateOrigin);
 			patched++;
 		}
 	}
@@ -15947,7 +15947,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 						data[i + 89] = 0x2004007F;	// subfic	r0, r4, 127
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", PADOriginCallbackSigs[j].Name, j, PADOriginCallback);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", PADOriginCallbackSigs[j].Name, j, PADOriginCallback);
 			patched++;
 		}
 	}
@@ -15971,7 +15971,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 						data[i + 96] = 0x2003007F;	// subfic	r0, r3, 127
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", PADOriginUpdateCallbackSigs[j].Name, j, PADOriginUpdateCallback);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", PADOriginUpdateCallbackSigs[j].Name, j, PADOriginUpdateCallback);
 			patched++;
 		}
 	}
@@ -16031,7 +16031,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 					data[i + 178] = branchAndLink(CheckStatus, PADRead + 178);
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", PADReadSigs[j].Name, j, PADRead);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", PADReadSigs[j].Name, j, PADRead);
 			patched++;
 		}
 	}
@@ -16058,7 +16058,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 					                                                       &SPEC2_MakeStatusSigs[4], NULL);
 					break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", PADSetSpecSigs[j].Name, j, PADSetSpec);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", PADSetSpecSigs[j].Name, j, PADSetSpec);
 			patched++;
 		}
 	}
@@ -16114,7 +16114,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 					case 2: data[i + 82] = 0x20030080; break;	// subfic	r0, r3, 128
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", SPEC0_MakeStatusSigs[j].Name, j, SPEC0_MakeStatus);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", SPEC0_MakeStatusSigs[j].Name, j, SPEC0_MakeStatus);
 			patched++;
 		}
 	}
@@ -16170,7 +16170,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 					case 2: data[i + 82] = 0x20030080; break;	// subfic	r0, r3, 128
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", SPEC1_MakeStatusSigs[j].Name, j, SPEC1_MakeStatus);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", SPEC1_MakeStatusSigs[j].Name, j, SPEC1_MakeStatus);
 			patched++;
 		}
 	}
@@ -16182,7 +16182,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 			data[i + 3] = 0x41800020;	// blt		+8
 			data[i + 4] = 0x3BE4FF81;	// subi		r31, r4, 127
 			
-			print_gecko("Found:[%s] @ %08X\n", ClampS8Sig.Name, ClampS8);
+			print_gecko("Encontrado:[%s] @ %08X\n", ClampS8Sig.Name, ClampS8);
 			patched++;
 		}
 	}
@@ -16350,7 +16350,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 					case 4: data[i + 145] = 0x2006007F; break;	// subfic	r0, r6, 127
 				}
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", SPEC2_MakeStatusSigs[j].Name, j, SPEC2_MakeStatus);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", SPEC2_MakeStatusSigs[j].Name, j, SPEC2_MakeStatus);
 			patched++;
 		}
 	}
@@ -16366,7 +16366,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 				case 2:
 				case 3: data[i + 26] = 0x1CC007D0; break;	// mulli	r6, r0, 2000
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", SetupTimeoutAlarmSigs[j].Name, j, SetupTimeoutAlarm);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", SetupTimeoutAlarmSigs[j].Name, j, SetupTimeoutAlarm);
 			patched++;
 		}
 	}
@@ -16381,7 +16381,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 				case 4: data[i + 43] = 0x1CC007D0; break;	// mulli	r6, r0, 2000
 				case 5: data[i + 41] = 0x1CC007D0; break;	// mulli	r6, r0, 2000
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", RetrySigs[j].Name, j, Retry);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", RetrySigs[j].Name, j, Retry);
 			patched++;
 		}
 	}
@@ -16397,7 +16397,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 				case 5:
 				case 6: data[i + 69] = 0x1CC007D0; break;	// mulli	r6, r0, 2000
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", __CARDStartSigs[j].Name, j, __CARDStart);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", __CARDStartSigs[j].Name, j, __CARDStart);
 			patched++;
 		}
 	}
@@ -16411,7 +16411,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 				case 0: data[i + 16] = 0x38000000 | (swissSettings.fontEncode & 0xFFFF); break;
 				case 1: data[i + 12] = 0x38000000 | (swissSettings.fontEncode & 0xFFFF); break;
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", CARDGetEncodingSigs[j].Name, j, CARDGetEncoding);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", CARDGetEncodingSigs[j].Name, j, CARDGetEncoding);
 			patched++;
 		}
 	}
@@ -16426,7 +16426,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 			data[i + 0] = 0x38600000;	// li		r3, 0
 			data[i + 1] = 0x4E800020;	// blr
 			
-			print_gecko("Found:[%s$%i] @ %08X\n", VerifyIDSigs[j].Name, j, VerifyID);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", VerifyIDSigs[j].Name, j, VerifyID);
 			patched++;
 		}
 	}
@@ -16450,7 +16450,7 @@ int Patch_Miscellaneous(u32 *data, u32 length, int dataType)
 				case 10: data[i + 218] = 0x48000004; break;	// b		+1
 				case 11: data[i + 202] = 0x48000004; break;	// b		+1
 			}
-			print_gecko("Found:[%s$%i] @ %08X\n", DoMountSigs[j].Name, j, DoMount);
+			print_gecko("Encontrado:[%s$%i] @ %08X\n", DoMountSigs[j].Name, j, DoMount);
 			patched++;
 		}
 	}
@@ -16464,7 +16464,7 @@ void *Calc_ProperAddress(void *data, int dataType, u32 offsetFoundAt) {
 
 		// Doesn't look valid
 		if (hdr->textOffset[0] != DOLHDRLENGTH) {
-			print_gecko("DOL Header doesn't look valid %08X\r\n",hdr->textOffset[0]);
+			print_gecko("Header de DOL parece invalido %08X\r\n",hdr->textOffset[0]);
 			return NULL;
 		}
 
@@ -16554,7 +16554,7 @@ void *Calc_Address(void *data, int dataType, u32 properAddress) {
 
 		// Doesn't look valid
 		if (hdr->textOffset[0] != DOLHDRLENGTH) {
-			print_gecko("DOL Header doesn't look valid %08X\r\n",hdr->textOffset[0]);
+			print_gecko("Header de DOL parece invalido %08X\r\n",hdr->textOffset[0]);
 			return NULL;
 		}
 
@@ -16665,7 +16665,7 @@ int Patch_CheatsHook(u8 *data, u32 length, u32 type) {
 			// we'll need to work out where it will end up when it does get placed in memory to write the relative branch.
 			void *properAddress = Calc_ProperAddress(data, type, i+j);
 			if(properAddress) {
-				print_gecko("Found:[Hook:OSSleepThread] @ %08X\n", properAddress );
+				print_gecko("Encontrado:[Hook:OSSleepThread] @ %08X\n", properAddress );
 				*(vu32*)(data+i+j) = branch(CHEATS_ENGINE_START, properAddress);
 				break;
 			}
@@ -16700,7 +16700,7 @@ int Patch_CheatsHook(u8 *data, u32 length, u32 type) {
 			// we'll need to work out where it will end up when it does get placed in memory to write the relative branch.
 			void *properAddress = Calc_ProperAddress(data, type, i+j);
 			if(properAddress) {
-				print_gecko("Found:[Hook:GXDrawDone] @ %08X\n", properAddress );
+				print_gecko("Encontrado:[Hook:GXDrawDone] @ %08X\n", properAddress );
 				*(vu32*)(data+i+j) = branch(CHEATS_ENGINE_START, properAddress);
 				break;
 			}

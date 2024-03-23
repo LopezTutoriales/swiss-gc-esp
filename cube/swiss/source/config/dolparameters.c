@@ -35,15 +35,15 @@ Values={1, 1}, {2, 2}, {3, 3}
 
 void printParams(Parameters *params) {
 	int i = 0, j = 0;
-	print_gecko("There are %i parameters\r\n", params->num_params);
+	print_gecko("Hay %i parametros\r\n", params->num_params);
 	for(i = 0; i < params->num_params; i++) {
 		Parameter *param = &params->parameters[i];
 		ParameterValue *arg = &param->arg;
-		print_gecko("Argument: (%s) [%s]\r\n", arg->value, arg->name);
-		print_gecko("This parameter has %i values\r\n", param->num_values);
+		print_gecko("Argumento: (%s) [%s]\r\n", arg->value, arg->name);
+		print_gecko("Este parametro tiene %i valores\r\n", param->num_values);
 		for(j = 0; j < param->num_values; j++) {
 			ParameterValue *val = &param->values[j];
-			print_gecko("Value: (%s) [%s]\r\n", val->value, val->name);
+			print_gecko("Valor: (%s) [%s]\r\n", val->value, val->name);
 		}
 	}
 }
@@ -129,7 +129,7 @@ Parameters* getParameters() {
 void populateArgv(char **argz, size_t *argz_len, char *filename) {
 	int i = 0;
 	Parameters* params = getParameters();
-	print_gecko("There are %i parameters\r\n", params->num_params);
+	print_gecko("Hay %i parametros\r\n", params->num_params);
 	for(i = 0; i < params->num_params; i++) {
 		Parameter *param = &params->parameters[i];
 		if(param->enable) {
@@ -145,5 +145,5 @@ void populateArgv(char **argz, size_t *argz_len, char *filename) {
 				envz_add(argz, argz_len, val->value, NULL);
 		}
 	}
-	print_gecko("Arg count: %i\r\n", argz_count(*argz, *argz_len));
+	print_gecko("Contador: %i\r\n", argz_count(*argz, *argz_len));
 }

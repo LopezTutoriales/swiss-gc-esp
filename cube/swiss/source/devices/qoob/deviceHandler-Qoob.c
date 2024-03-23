@@ -85,7 +85,7 @@ char *getQoobExtension(qoobEntryHeader* entryHeader) {
 	
 s32 deviceHandler_Qoob_readDir(file_handle* ffile, file_handle** dir, u32 type) {	
   
-	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Reading Qoob"));
+	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Leyendo Qoob"));
 	// Set everything up to read
 	int num_entries = 1, i = 1, block = 0;
 	*dir = calloc(num_entries, sizeof(file_handle));
@@ -154,12 +154,12 @@ s32 deviceHandler_Qoob_readDir(file_handle* ffile, file_handle** dir, u32 type) 
 				usedSpace += (*dir)[i].size;
 				++i;
 				
-				print_gecko("Found [%08X] entry, %08X in size\r\n", entryHeader.entry_type, entryHeader.num_blocks);
+				print_gecko("Encontrada entrada [%08X], %08X en tam.\r\n", entryHeader.entry_type, entryHeader.num_blocks);
 				block += (entryHeader.num_blocks * QOOB_BLOCK_SIZE);
 				break;
 			}
 			default:
-				print_gecko("unknown/empty block found at %08X [%08X]\r\n", block, entryHeader.entry_type);
+				print_gecko("Bloque desconocido/vacio encontrado en %08X [%08X]\r\n", block, entryHeader.entry_type);
 				block += QOOB_BLOCK_SIZE;
 				break;
 		}
@@ -195,7 +195,7 @@ int erase_sector(int addr)
 	rom_write(0xAAA, 0xAA);
 	rom_write(0x555, 0x55);
 	rom_write(addr, 0x30);
-	printf("\r%08x erase..\n", addr);
+	printf("\r%08x borrar..\n", addr);
 	while (rom_read(addr) != rom_read(addr));
 	return 0;
 }
@@ -211,7 +211,7 @@ int erase_qoob_rom(u32 dest, int len)
 {
 	rom_write(0xAAA, 0xAA); rom_write(0x555, 0x55); rom_write(0xAAA, 0x20);
 	int addr;
-	print_gecko("erasing...\r\n");
+	print_gecko("borrando...\r\n");
 	for (addr = dest; addr < (dest + len); ++addr) {
 		if (is_eraseblock(addr)) {
 			print_gecko("erase_sector(%08X)\r\n", addr);
@@ -223,11 +223,11 @@ int erase_qoob_rom(u32 dest, int len)
 
 int write_qoob_rom(unsigned char *src, u32 dest, int len)
 {
-	print_gecko("Writing %08X to dest %08X with length %i\r\n", src, dest, len);
+	print_gecko("Escribiendo %08X al dest %08X con long. %i\r\n", src, dest, len);
 	// CFI query
 	rom_write(0xAA, 0x98);
 
-	print_gecko("CFI data:\r\n");
+	print_gecko("Datos CFI:\r\n");
 	int addr;
 	for (addr = 0; addr < 0x100; addr += 0x10)
 	{
@@ -243,7 +243,7 @@ int write_qoob_rom(unsigned char *src, u32 dest, int len)
 		print_gecko("\r\n");
 	}
 	
-	print_gecko("man id:\r\n");
+	print_gecko("ID man:\r\n");
 	int i;
 	for (i=0; i<10; ++i)
 	{
@@ -255,7 +255,7 @@ int write_qoob_rom(unsigned char *src, u32 dest, int len)
 	
 	erase_qoob_rom(dest, len);
 	
-	print_gecko("flashing...\r\n");
+	print_gecko("flasheando...\r\n");
 	while (len)
 	{
 		rom_write(dest, 0xA0);
@@ -265,7 +265,7 @@ int write_qoob_rom(unsigned char *src, u32 dest, int len)
 		++dest;
 		--len;
 	}
-	print_gecko("done!\r\n");
+	print_gecko("Hecho!\r\n");
 	return 0;
 }
 
@@ -287,7 +287,7 @@ s32 deviceHandler_Qoob_writeFile(file_handle* file, const void* buffer, u32 leng
 			__SYS_ReadROM(iplBlock,sizeof(qoobEntryHeader),block);
 			qoobEntryHeader entryHeader;
 			memcpy(&entryHeader, &iplBlock, sizeof(qoobEntryHeader));
-			print_gecko("Checking block at %08X\r\n", block);
+			print_gecko("Comprobando bloque en %08X\r\n", block);
 			switch(entryHeader.entry_type) {
 				case QOOB_FILE_APPL:
 				case QOOB_FILE_BIOS:
@@ -303,16 +303,16 @@ s32 deviceHandler_Qoob_writeFile(file_handle* file, const void* buffer, u32 leng
 						if(emptyBlockSize > largestEmptyBlockSize) {
 							largestEmptyBlock = emptyBlock;
 							largestEmptyBlockSize = emptyBlockSize;
-							print_gecko("Largest empty block so far is %08X with size %08X\r\n", largestEmptyBlock, largestEmptyBlockSize);
+							print_gecko("Bloque vacio mas grande es %08X con tam. %08X\r\n", largestEmptyBlock, largestEmptyBlockSize);
 						}
 						emptyBlock = 0;
 						emptyBlockSize = 0;
 					}
-					print_gecko("Found [%08X] entry, %08X in size\r\n", entryHeader.entry_type, entryHeader.num_blocks);
+					print_gecko("Encontrada [%08X] entrada, %08X de tam.\r\n", entryHeader.entry_type, entryHeader.num_blocks);
 					block += (entryHeader.num_blocks * QOOB_BLOCK_SIZE);
 					break;
 				case 0xFFFFFFFF:
-					print_gecko("empty block found at %08X [%08X]\r\n", block, entryHeader.entry_type);
+					print_gecko("bloque vacio encontrado en %08X [%08X]\r\n", block, entryHeader.entry_type);
 					if(!emptyBlock) {
 						emptyBlock = block;
 					}
@@ -320,12 +320,12 @@ s32 deviceHandler_Qoob_writeFile(file_handle* file, const void* buffer, u32 leng
 					block += QOOB_BLOCK_SIZE;
 					break;
 				default:
-					print_gecko("unknown block found at %08X [%08X]\r\n", block, entryHeader.entry_type);
+					print_gecko("bloque desconocido encontrado en %08X [%08X]\r\n", block, entryHeader.entry_type);
 					if(emptyBlock) {
 						if(emptyBlockSize > largestEmptyBlockSize) {
 							largestEmptyBlock = emptyBlock;
 							largestEmptyBlockSize = emptyBlockSize;
-							print_gecko("Largest empty block so far is %08X with size %08X\r\n", largestEmptyBlock, largestEmptyBlockSize);
+							print_gecko("Bloque vacio mas grande es %08X con tam. %08X\r\n", largestEmptyBlock, largestEmptyBlockSize);
 						}
 						emptyBlock = 0;
 						emptyBlockSize = 0;
@@ -339,14 +339,14 @@ s32 deviceHandler_Qoob_writeFile(file_handle* file, const void* buffer, u32 leng
 			if(emptyBlockSize > largestEmptyBlockSize) {
 				largestEmptyBlock = emptyBlock;
 				largestEmptyBlockSize = emptyBlockSize;
-				print_gecko("Largest empty block so far is %08X with size %08X\r\n", largestEmptyBlock, largestEmptyBlockSize);
+				print_gecko("Bloque vacio mas grande es %08X con tam. %08X\r\n", largestEmptyBlock, largestEmptyBlockSize);
 			}
 		}
 		if(largestEmptyBlock) {
-			print_gecko("Largest empty block found at %08X with size %08X\r\n", largestEmptyBlock, largestEmptyBlockSize);
+			print_gecko("Bloque vacio mas grande encontrado en %08X con tam. %08X\r\n", largestEmptyBlock, largestEmptyBlockSize);
 		}
 		else {
-			print_gecko("No empty blocks found\r\n");
+			print_gecko("Bloques vacios no encontrados\r\n");
 		}
 		
 		// No space.
@@ -427,7 +427,7 @@ char* deviceHandler_Qoob_status(file_handle* file) {
 
 DEVICEHANDLER_INTERFACE __device_qoob = {
 	.deviceUniqueId = DEVICE_ID_7,
-	.hwName = "Qoob Modchip",
+	.hwName = "Chip Qoob",
 	.deviceName = "Qoob Pro",
 	.deviceDescription = "Qoob Pro Flash File System",
 	.deviceTexture = {TEX_QOOB, 82, 84, 96, 102},

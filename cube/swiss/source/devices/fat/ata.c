@@ -213,13 +213,13 @@ int _ideExiVersion(int chn) {
 	}
 	u32 cid = 0;
 	EXI_GetID(chn,dev,&cid);
-	print_gecko("IDE-EXI ID: %08X\r\n",cid);
+	print_gecko("ID IDE-EXI: %08X\r\n",cid);
 	if((cid&~0xff)==EXI_IDE_ID) {
-		print_gecko("IDE-EXI v2+ detected\r\n");
+		print_gecko("IDE-EXI v2+ detectado\r\n");
 		return (cid&0xff)-'1';
 	}
 	else {
-		print_gecko("Unknown - assume IDE-EXI v1\r\n");
+		print_gecko("Desconocido - se supone que es IDE-EXI v1\r\n");
 		return IDE_EXI_V1;
 	}
 }
@@ -247,11 +247,11 @@ u32 _ataDriveIdentify(int chn) {
 		tmp = ataReadStatusReg(chn);
 		usleep(100000);	//sleep for 0.1 seconds
 		retries--;
-		print_gecko("(%08X) Waiting for BSY to clear..\r\n", tmp);
+		print_gecko("(%08X) Esperando que BSY se despeje..\r\n", tmp);
 	}
 	while((tmp & ATA_SR_BSY) && retries);
 	if(!retries) {
-		print_gecko("Exceeded retries..\r\n");
+		print_gecko("Reintentos superados..\r\n");
 		return -1;
 	}
     
@@ -264,11 +264,11 @@ u32 _ataDriveIdentify(int chn) {
 		tmp = ataReadStatusReg(chn); 
 		usleep(100000);	//sleep for 0.1 seconds
 		retries--;
-		print_gecko("(%08X) Waiting for DRQ to toggle..\r\n", tmp);
+		print_gecko("(%08X) Esperando por DRQ para cambiar..\r\n", tmp);
 	}
 	while((!(tmp & ATA_SR_DRQ)) && retries);
 	if(!retries) {
-		print_gecko("(%08X) Drive did not respond in time, failing IDE-EXI init..\r\n", tmp);
+		print_gecko("(%08X) La unidad no responde, fallo el inicio de IDE-EXT..\r\n", tmp);
 		return -1;
 	}
 	usleep(2000);
@@ -319,15 +319,15 @@ u32 _ataDriveIdentify(int chn) {
 		i--;
 	}
 	
-	print_gecko("%d GB HDD Connected\r\n", ataDriveInfo.sizeInGigaBytes);
-	print_gecko("LBA 48-Bit Mode %s\r\n", ataDriveInfo.lba48Support ? "Supported" : "Not Supported");
+	print_gecko("HDD %d GB Conectado\r\n", ataDriveInfo.sizeInGigaBytes);
+	print_gecko("Modo LBA 48-Bit %s\r\n", ataDriveInfo.lba48Support ? "Soportado" : "No Soportado");
 	if(!ataDriveInfo.lba48Support) {
-		print_gecko("Cylinders: %i\r\n",ataDriveInfo.cylinders);
-		print_gecko("Heads Per Cylinder: %i\r\n",ataDriveInfo.heads);
-		print_gecko("Sectors Per Track: %i\r\n",ataDriveInfo.sectors);
+		print_gecko("Cilindros: %i\r\n",ataDriveInfo.cylinders);
+		print_gecko("Cabezas por Cilindro: %i\r\n",ataDriveInfo.heads);
+		print_gecko("Sectores Por Pista: %i\r\n",ataDriveInfo.sectors);
 	}
-	print_gecko("Model: %s\r\n",ataDriveInfo.model);
-	print_gecko("Serial: %s\r\n",ataDriveInfo.serial); 
+	print_gecko("Modelo: %s\r\n",ataDriveInfo.model);
+	print_gecko("N. Serie: %s\r\n",ataDriveInfo.serial); 
 	//print_hdd_sector(&buffer);
 	
 	//int unlockStatus = ataUnlock(chn, 1, "password\0", ATA_CMD_UNLOCK);
@@ -353,11 +353,11 @@ int ataUnlock(int chn, int useMaster, char *password, int command)
 		tmp = ataReadStatusReg(chn);
 		usleep(100000);	//sleep for 0.1 seconds
 		retries--;
-		print_gecko("UNLOCK (%08X) Waiting for BSY to clear..\r\n", tmp);
+		print_gecko("DESBLOQUEAR (%08X) Esperando que BSY se despeje..\r\n", tmp);
 	}
 	while((tmp & ATA_SR_BSY) && retries);
 	if(!retries) {
-		print_gecko("UNLOCK Exceeded retries..\r\n");
+		print_gecko("DESBLOQUEAR Reintentos excedidos..\r\n");
 		return -1;
 	}
     
@@ -370,11 +370,11 @@ int ataUnlock(int chn, int useMaster, char *password, int command)
 		tmp = ataReadStatusReg(chn); 
 		usleep(100000);	//sleep for 0.1 seconds
 		retries--;
-		print_gecko("UNLOCK (%08X) Waiting for DRQ to toggle..\r\n", tmp);
+		print_gecko("DESBLOQUEAR (%08X) Esperando por DRQ para cambiar..\r\n", tmp);
 	}
 	while((!(tmp & ATA_SR_DRQ)) && retries);
 	if(!retries) {
-		print_gecko("UNLOCK (%08X) Drive did not respond in time, failing IDE-EXI init..\r\n", tmp);
+		print_gecko("DESBLOQUEAR (%08X) La unidad no responde, fallo el inicio de IDE-EXT..\r\n", tmp);
 		return -1;
 	}
 	usleep(2000);
@@ -549,7 +549,7 @@ int ataReadSectors(int chn, u64 sector, unsigned int numSectors, unsigned char *
 	while(numSectors) {
 		//print_gecko("Reading, sec %08X, numSectors %i, dest %08X ..\r\n", (u32)(sector&0xFFFFFFFF),numSectors, (u32)dest);
 		if((ret=_ataReadSector(chn,sector,(u32*)dest))) {
-			print_gecko("(%08X) Failed to read!..\r\n", ret);
+			print_gecko("(%08X) Fallo al leer!..\r\n", ret);
 			return -1;
 		}
 		//print_hdd_sector((u32*)dest);
@@ -567,7 +567,7 @@ int ataWriteSectors(int chn, u64 sector,unsigned int numSectors, unsigned char *
 	int ret = 0;
 	while(numSectors) {
 		if((ret=_ataWriteSector(chn,sector,(u32*)src))) {
-			print_gecko("(%08X) Failed to write!..\r\n", ret);
+			print_gecko("(%08X) Fallo al escribir!..\r\n", ret);
 			return -1;
 		}
 		src+=512;

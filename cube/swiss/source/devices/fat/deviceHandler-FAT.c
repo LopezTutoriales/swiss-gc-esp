@@ -311,7 +311,7 @@ s32 deviceHandler_FAT_setupFile(file_handle* file, file_handle* file2, Executabl
 
 s32 fatFs_Mount(u8 devNum, char *path) {
 	if(fs[devNum] != NULL) {
-		print_gecko("Unmount %i devnum, %s path\r\n", devNum, path);
+		print_gecko("Desmontar %i devnum, %s ruta\r\n", devNum, path);
 		f_unmount(path);
 		free(fs[devNum]);
 		fs[devNum] = NULL;
@@ -323,14 +323,14 @@ s32 fatFs_Mount(u8 devNum, char *path) {
 
 void setSDGeckoSpeed(int slot, bool fast) {
 	sdgecko_setSpeed(slot, fast ? EXI_SPEED32MHZ:EXI_SPEED16MHZ);
-	print_gecko("SD speed set to %s\r\n", (fast ? "32MHz":"16MHz"));
+	print_gecko("Velocidad SD fijada en %s\r\n", (fast ? "32MHz":"16MHz"));
 }
 
 s32 deviceHandler_FAT_init(file_handle* file) {
 	int isSDCard = IS_SDCARD(file);
 	int slot = GET_SLOT(file);
 	file->status = 0;
-	print_gecko("Init %s %i\r\n", (isSDCard ? "SD":"ATA"), slot);
+	print_gecko("Iniciar %s %i\r\n", (isSDCard ? "SD":"ATA"), slot);
 	// SD Card - Slot A
 	if(isSDCard && slot == 0) {
 		setSDGeckoSpeed(slot, swissSettings.exiSpeed);
@@ -468,53 +468,53 @@ char* deviceHandler_FAT_status(file_handle* file) {
 		case FR_OK:			/* (0) Succeeded */
 			return NULL;
 		case FR_DISK_ERR:
-			return "Error occurred in the low level disk I/O layer";
+			return "Error en la capa de E/S de bajo nivel del disco";
 		case FR_INT_ERR:
-			return "Assertion failed";
+			return "Asercion fallo";
 		case FR_NOT_READY:
-			return "The physical drive cannot work";
+			return "La unidad fisica no puede funcionar";
 		case FR_NO_FILE:
-			return "Could not find the file";
+			return "Imposible encontrar el archivo";
 		case FR_NO_PATH:
-			return "Could not find the path";
+			return "Imposible encontrar la ruta";
 		case FR_INVALID_NAME:
-			return "The path name format is invalid";
+			return "Nombre de la ruta invalido";
 		case FR_DENIED:
-			return "Access denied due to prohibited access or directory full";
+			return "Acceso denegado por  acceso prohibido o directorio lleno";
 		case FR_EXIST:
-			return "Access denied due to prohibited access";
+			return "Acceso denegado por  acceso prohibido";
 		case FR_INVALID_OBJECT:
-			return "The file/directory object is invalid";
+			return "Objeto de archivo/directorio invalido";
 		case FR_WRITE_PROTECTED:
-			return "The physical drive is write protected";
+			return "Unidad fisica protegida contra escritura";
 		case FR_INVALID_DRIVE:
-			return "The logical drive number is invalid";
+			return "Numero de unidad logica invalido";
 		case FR_NOT_ENABLED:
-			return "The volume has no work area";
+			return "El volumen no tiene area de trabajo";
 		case FR_NO_FILESYSTEM:
-			return "There is no valid FAT volume";
+			return "No hay un volumen FAT valido";
 		case FR_MKFS_ABORTED:
-			return "The f_mkfs() aborted due to any problem";
+			return "f_mkfs() abortado por cualquier problema";
 		case FR_TIMEOUT:
-			return "Could not get a grant to access the volume within defined period";
+			return "Imposible acceder al volumen dentro del periodo definido";
 		case FR_LOCKED:
-			return "The operation is rejected according to the file sharing policy";
+			return "Operacion cancelada por la politica de intercambio de archivos";
 		case FR_NOT_ENOUGH_CORE:
-			return "LFN working buffer could not be allocated";
+			return "Imposible asignar buffer de trabajo LFN";
 		case FR_TOO_MANY_OPEN_FILES:
-			return "Number of open files > FF_FS_LOCK";
+			return "Numero de archivos abiertos > FF_FS_LOCK";
 		case FR_INVALID_PARAMETER:
-			return "Given parameter is invalid";
+			return "El parametro dado no es valido";
 		default:
-			return "Unknown error occurred";
+			return "Ocurrio un error desconocido";
 	}
 }
 
 DEVICEHANDLER_INTERFACE __device_sd_a = {
 	.deviceUniqueId = DEVICE_ID_1,
-	.hwName = "SD Card Adapter",
-	.deviceName = "SD Card - Slot A",
-	.deviceDescription = "SD(HC/XC) Card - Supported File System(s): FAT16, FAT32, exFAT",
+	.hwName = "Adaptador SD",
+	.deviceName = "SD - Ranura A",
+	.deviceDescription = "SD(HC/XC) - Formato(s) soportado(s): FAT16, FAT32, exFAT",
 	.deviceTexture = {TEX_SDSMALL, 59, 78, 64, 80},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_CONFIG_DEVICE|FEAT_AUTOLOAD_DOL|FEAT_THREAD_SAFE|FEAT_HYPERVISOR|FEAT_PATCHES|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_READ_SPEED|EMU_AUDIO_STREAMING|EMU_MEMCARD,
@@ -539,9 +539,9 @@ DEVICEHANDLER_INTERFACE __device_sd_a = {
 
 DEVICEHANDLER_INTERFACE __device_sd_b = {
 	.deviceUniqueId = DEVICE_ID_2,
-	.hwName = "SD Card Adapter",
-	.deviceName = "SD Card - Slot B",
-	.deviceDescription = "SD(HC/XC) Card - Supported File System(s): FAT16, FAT32, exFAT",
+	.hwName = "Adaptador SD",
+	.deviceName = "SD - Ranura B",
+	.deviceDescription = "SD(HC/XC) - Formato(s) soportado(s): FAT16, FAT32, exFAT",
 	.deviceTexture = {TEX_SDSMALL, 59, 78, 64, 80},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_CONFIG_DEVICE|FEAT_AUTOLOAD_DOL|FEAT_THREAD_SAFE|FEAT_HYPERVISOR|FEAT_PATCHES|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_READ_SPEED|EMU_AUDIO_STREAMING|EMU_MEMCARD,
@@ -567,8 +567,8 @@ DEVICEHANDLER_INTERFACE __device_sd_b = {
 DEVICEHANDLER_INTERFACE __device_ata_a = {
 	.deviceUniqueId = DEVICE_ID_3,
 	.hwName = "IDE-EXI",
-	.deviceName = "IDE-EXI - Slot A",
-	.deviceDescription = "IDE/PATA HDD - Supported File System(s): FAT16, FAT32, exFAT",
+	.deviceName = "IDE - Ranura A",
+	.deviceDescription = "IDE/PATA HDD - Formato(s) soportado(s): FAT16, FAT32, exFAT",
 	.deviceTexture = {TEX_HDD, 104, 73, 104, 76},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_CONFIG_DEVICE|FEAT_AUTOLOAD_DOL|FEAT_THREAD_SAFE|FEAT_HYPERVISOR|FEAT_PATCHES|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_AUDIO_STREAMING|EMU_MEMCARD,
@@ -594,8 +594,8 @@ DEVICEHANDLER_INTERFACE __device_ata_a = {
 DEVICEHANDLER_INTERFACE __device_ata_b = {
 	.deviceUniqueId = DEVICE_ID_4,
 	.hwName = "IDE-EXI",
-	.deviceName = "IDE-EXI - Slot B",
-	.deviceDescription = "IDE/PATA HDD - Supported File System(s): FAT16, FAT32, exFAT",
+	.deviceName = "IDE - Ranura B",
+	.deviceDescription = "IDE/PATA HDD - Formato(s) soportado(s): FAT16, FAT32, exFAT",
 	.deviceTexture = {TEX_HDD, 104, 73, 104, 76},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_CONFIG_DEVICE|FEAT_AUTOLOAD_DOL|FEAT_THREAD_SAFE|FEAT_HYPERVISOR|FEAT_PATCHES|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_AUDIO_STREAMING|EMU_MEMCARD,
@@ -620,9 +620,9 @@ DEVICEHANDLER_INTERFACE __device_ata_b = {
 
 DEVICEHANDLER_INTERFACE __device_sd_c = {
 	.deviceUniqueId = DEVICE_ID_F,
-	.hwName = "SD Card Adapter",
-	.deviceName = "SD Card - SD2SP2",
-	.deviceDescription = "SD(HC/XC) Card - Supported File System(s): FAT16, FAT32, exFAT",
+	.hwName = "Adaptador SD",
+	.deviceName = "SD - SD2SP2",
+	.deviceDescription = "SD(HC/XC) - Formato(s) soportado(s): FAT16, FAT32, exFAT",
 	.deviceTexture = {TEX_SDSMALL, 59, 78, 64, 80},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_CONFIG_DEVICE|FEAT_AUTOLOAD_DOL|FEAT_THREAD_SAFE|FEAT_HYPERVISOR|FEAT_PATCHES|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_READ_SPEED|EMU_AUDIO_STREAMING|EMU_MEMCARD,
@@ -649,7 +649,7 @@ DEVICEHANDLER_INTERFACE __device_ata_c = {
 	.deviceUniqueId = DEVICE_ID_H,
 	.hwName = "M.2 Loader",
 	.deviceName = "M.2 Loader",
-	.deviceDescription = "M.2 SATA SSD - Supported File System(s): FAT16, FAT32, exFAT",
+	.deviceDescription = "M.2 SATA SSD - Formato(s) soportado(s): FAT16, FAT32, exFAT",
 	.deviceTexture = {TEX_M2LOADER, 112, 54, 112, 56},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_CONFIG_DEVICE|FEAT_AUTOLOAD_DOL|FEAT_THREAD_SAFE|FEAT_HYPERVISOR|FEAT_PATCHES|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_READ_SPEED|EMU_AUDIO_STREAMING|EMU_MEMCARD,

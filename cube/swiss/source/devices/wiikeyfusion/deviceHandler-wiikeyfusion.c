@@ -48,7 +48,7 @@ s32 deviceHandler_WKF_setupFile(file_handle* file, file_handle* file2, Executabl
 	
 	// Check if there are any fragments in our patch location for this game
 	if(devices[DEVICE_PATCHES] != NULL) {
-		print_gecko("Save Patch device found\r\n");
+		print_gecko("Dispositivo guardar Parches encontrado\r\n");
 		
 		// Look for patch files, if we find some, open them and add them as fragments
 		file_handle patchFile;
@@ -216,7 +216,7 @@ DEVICEHANDLER_INTERFACE __device_wkf = {
 	.deviceUniqueId = DEVICE_ID_B,
 	.hwName = "WKF / WASP ODE",
 	.deviceName = "Wiikey / Wasp Fusion",
-	.deviceDescription = "Supported File System(s): FAT16, FAT32, exFAT",
+	.deviceDescription = "Formato(s) soportado(s): FAT16, FAT32, exFAT",
 	.deviceTexture = {TEX_WIIKEY, 115, 71, 120, 80},
 	.features = FEAT_READ|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_AUTOLOAD_DOL|FEAT_THREAD_SAFE|FEAT_HYPERVISOR|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_AUDIO_STREAMING|EMU_MEMCARD,

@@ -62,9 +62,9 @@ bool deviceHandler_ARAM_test() {
 
 DEVICEHANDLER_INTERFACE __device_aram = {
 	.deviceUniqueId = DEVICE_ID_I,
-	.hwName = "Memory Expansion Pak",
-	.deviceName = "RAM Disk",
-	.deviceDescription = "Supported File System(s): FAT16, FAT32, exFAT",
+	.hwName = "Memoria Expansion Pak",
+	.deviceName = "RAM",
+	.deviceDescription = "Formato(s) soportado(s): FAT16, FAT32, exFAT",
 	.deviceTexture = {TEX_SYSTEM, 75, 48, 76, 48},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_THREAD_SAFE,
 	.location = LOC_HSP,

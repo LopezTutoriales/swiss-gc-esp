@@ -122,7 +122,7 @@ const char* getHwNameByLocation(u32 location) {
 			if(EXI_GetType(EXI_CHANNEL_0, EXI_DEVICE_1, &type) && ~type) return EXI_GetTypeString(type);
 			break;
 	}
-	return "Empty";
+	return "Vacio";
 }
 
 bool getFragments(int deviceSlot, file_handle *file, file_frag **fragList, u32 *totFrags, u8 fileNum, u32 forceBaseOffset, u32 forceSize) {
@@ -148,7 +148,7 @@ bool getFragments(int deviceSlot, file_handle *file, file_frag **fragList, u32 *
 		}
 		file->ffsFp->cltbl = NULL;
 		
-		print_gecko("getFragments [%s] - found %i fragments [%i arr]\r\n", file->name, (clmt[0]/2)-1, clmt[0]);
+		print_gecko("getFragments [%s] - encontrados %i fragmentos [%i arr]\r\n", file->name, (clmt[0]/2)-1, clmt[0]);
 		
 		frags = reallocarray(frags, numFrags + (clmt[0]/2), sizeof(file_frag));
 		if(frags == NULL) {
@@ -216,12 +216,12 @@ bool getFragments(int deviceSlot, file_handle *file, file_frag **fragList, u32 *
 }
 
 void print_frag_list(file_frag *fragList, u32 totFrags) {
-	print_gecko("== Fragments List ==\r\n");
+	print_gecko("== Lista de Fragmentos ==\r\n");
 	for(int i = 0; i < totFrags; i++) {
-		print_gecko("Frag %i: ofs in file: [0x%08X] len [0x%08X] LBA on disk [0x%012llX]\r\n",
+		print_gecko("Frag %i: ofs en arch: [0x%08X] long [0x%08X] LBA en disco [0x%012llX]\r\n",
 					i, fragList[i].offset, fragList[i].size, fragList[i].fileBase);
 	}
-	print_gecko("== Fragments End ==\r\n");
+	print_gecko("== Fin de Fragmentos ==\r\n");
 }
 
 FILE* openFileStream(int deviceSlot, file_handle *file)

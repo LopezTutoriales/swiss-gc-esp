@@ -141,14 +141,14 @@ int wkfSpiRead(unsigned char *buf, unsigned int addr, int len) {
 	for (i=0; i<len; i++) {
 		buf[i]  = __wkfSpiReadUC(addr+i);
 		if((i%4096)==0)
-			print_gecko("Dumped %08X bytes (byte: %02X)\r\n", i, buf[i]);
+			print_gecko("Dumpeados %08X bytes (byte: %02X)\r\n", i, buf[i]);
 	}
 	return 0;
 }
 
 char *wkfGetSerial() {
 	int i = 0;
-	strcpy(wkfSerial, "Unknown");
+	strcpy(wkfSerial, "Desconocido");
 	for (i=0; i<16; i++) {
 		wkfSerial[i] = __wkfSpiReadUC(0x1f0000+i);
 	}
@@ -161,20 +161,20 @@ void wkfWriteFlash(unsigned char *menuImg, unsigned char *firmwareImg) {
 	int page_num = 0;
 	int perc=0,prevperc=0;
 
-	print_gecko("WKF Serial: %s\r\n", wkfGetSerial());
+	print_gecko("Serial de WKF: %s\r\n", wkfGetSerial());
 	
-	print_gecko("Firmware upgrade in progress.\r\n");
-	print_gecko("Please do not power off your GC/Wii.\r\n");
+	print_gecko("Actualizacion de firmware en proceso.\r\n");
+	print_gecko("No apagues tu GC/Wii.\r\n");
 	
-	uiDrawObj_t* progBar = DrawProgressBar(false, 0, "Menu flashing in progress. Do NOT Power Off !!");
+	uiDrawObj_t* progBar = DrawProgressBar(false, 0, "Flasheando Menu. NO APAGUES !!");
 	DrawPublish(progBar);
 	for(page_num = 0; page_num < (0x1D0000/0x1000); page_num++) {
-		print_gecko("Erasing Flash Page at %08X\r\n",page_num<<12);
+		print_gecko("Borrando pagina de flasheo en %08X\r\n",page_num<<12);
 		__wkfSpiUnlockFwPages(1);
 		__wkfSpiErasePage(page_num<<12);
 		__wkfSpiUnlockFwPages(7);
 
-		print_gecko("Writing Flash Page at %08X\r\n",page_num<<12);
+		print_gecko("Escribiendo pagina de flasheo en %08X\r\n",page_num<<12);
 		__wkfSpiUnlockFwPages(1);
 		__wkfFlashPage(menuImg+(page_num<<12),page_num<<12);
 		__wkfSpiUnlockFwPages(7);
@@ -187,26 +187,26 @@ void wkfWriteFlash(unsigned char *menuImg, unsigned char *firmwareImg) {
 	}
 	sleep(1);
 	DrawDispose(progBar);
-	progBar = DrawProgressBar(false, 0, "Firmware flashing in progress. Do NOT Power Off !!");
+	progBar = DrawProgressBar(false, 0, "Flasheando Firmware. NO APAGUES !!");
 	DrawPublish(progBar);
 	if(firmwareImg) {
 		for(page_num = 0; page_num < 3; page_num++) {
-			print_gecko("Erasing Flash Page at %08X\r\n",0x1E1000+(page_num*0x1000));
+			print_gecko("Borrando pagina de flasheo en %08X\r\n",0x1E1000+(page_num*0x1000));
 			__wkfSpiUnlockFwPages(1);
 			__wkfSpiErasePage(0x1E1000+(page_num*0x1000));
 			__wkfSpiUnlockFwPages(7);
 
-			print_gecko("Writing Flash Page at %08X\r\n",0x1E1000+(page_num*0x1000));
+			print_gecko("Escribiendo pagina de flasheo en %08X\r\n",0x1E1000+(page_num*0x1000));
 			__wkfSpiUnlockFwPages(1);
 			__wkfFlashPage(firmwareImg+(page_num*0x1000),0x1E1000+(page_num*0x1000));
 			__wkfSpiUnlockFwPages(7);
 			
-			print_gecko("Erasing Flash Page at %08X\r\n",0x1F1000+(page_num*0x1000));
+			print_gecko("Borrando pagina de flasheo en %08X\r\n",0x1F1000+(page_num*0x1000));
 			__wkfSpiUnlockFwPages(1);
 			__wkfSpiErasePage(0x1F1000+(page_num*0x1000));
 			__wkfSpiUnlockFwPages(7);
 
-			print_gecko("Writing Flash Page at %08X\r\n",0x1F1000+(page_num*0x1000));
+			print_gecko("Escribiendo pagina de flasheo en %08X\r\n",0x1F1000+(page_num*0x1000));
 			__wkfSpiUnlockFwPages(1);
 			__wkfFlashPage(firmwareImg+(page_num*0x1000),0x1F1000+(page_num*0x1000));
 			__wkfSpiUnlockFwPages(7);
@@ -220,9 +220,9 @@ void wkfWriteFlash(unsigned char *menuImg, unsigned char *firmwareImg) {
 	}
 	DrawDispose(progBar);
 	
-	print_gecko("Should be 0x1C: %02X\r\n", __wkfSpiRdSR());
+	print_gecko("Deberia ser 0x1C: %02X\r\n", __wkfSpiRdSR());
   	print_gecko("0x80000: %02X\r\n", __wkfSpiReadUC(0x80000));
-	print_gecko("Done!\r\n");
+	print_gecko("Hecho!\r\n");
 }
 
 /* Returns this:
@@ -262,29 +262,29 @@ void wkfCheckSwitches() {
 	switch(regionSwitch) {
 		case 0x41: //PAL
 		case 0x01:
-			print_gecko("Valid PAL Swich config detected\r\n");
+			print_gecko("Configuracion SW PAL valida detectada\r\n");
 		break;
 		case 0x43: //NTSC
 		case 0x03:
-			print_gecko("Valid NTSC Swich config detected\r\n");
+			print_gecko("Configuracion SW NTSC valida detectada\r\n");
 		break;
 		case 0x45: //NTSC-J
 		case 0x05:
-			print_gecko("Valid JAP Swich config detected\r\n");
+			print_gecko("Configuracion SW JAP valida detectada\r\n");
 		break;
 		case 0x47: //KOR
 		case 0x07:
-			print_gecko("Valid KOR Swich config detected\r\n");
+			print_gecko("Configuracion SW KOR valida detectada\r\n");
 		break;
 		default: 
 		{
 			uiDrawObj_t* warning = DrawContainer();
-			print_gecko("Invalid Switch config detected: [0x%08X]\r\n", wkfReadSpecial3());
+			print_gecko("Configuracion invalida detectada: [0x%08X]\r\n", wkfReadSpecial3());
 			DrawAddChild(warning, DrawStyledLabel(640/2, 200, "*** WKF / WASP WARNING ***", 1.5f, true, defaultColor));
-			sprintf(txtbuffer,"Invalid WKF/WASP Switch config detected: [0x%08X]", wkfReadSpecial3());
+			sprintf(txtbuffer,"Configuracion WKF/WASP invalida detectada: [0x%08X]", wkfReadSpecial3());
 			DrawAddChild(warning, DrawStyledLabel(640/2, 250, txtbuffer, 0.75f, true, defaultColor));
-			DrawAddChild(warning, DrawStyledLabel(640/2, 280, "This will cause slowdown in games!", 0.8f, true, defaultColor));
-			DrawAddChild(warning, DrawStyledLabel(640/2, 310, "Please set SW3 & SW4 to ON to fix this", 0.8f, true, defaultColor));
+			DrawAddChild(warning, DrawStyledLabel(640/2, 280, "Esto puede ralentizar los juegos!", 0.8f, true, defaultColor));
+			DrawAddChild(warning, DrawStyledLabel(640/2, 310, "Pon el SW3 y SW4 en ON para arreglar esto", 0.8f, true, defaultColor));
 			DrawPublish(warning);
 			sleep(5);
 			DrawDispose(warning);
@@ -315,10 +315,10 @@ void wkfRead(void* dst, int len, u64 offset)
 void wkfInit() {
 
 	print_gecko("wkfInit!!\r\n");
-	print_gecko("WKF Serial: %s\r\n", wkfGetSerial());
+	print_gecko("Serial WKF: %s\r\n", wkfGetSerial());
    
 	unsigned int special_3 = wkfReadSpecial3();
-	print_gecko("GOT Special_3: %08X\r\n", special_3);
+	print_gecko("OBTENIDO Special_3: %08X\r\n", special_3);
 
 	// New DVD (aka put it back to WKF mode)
 	__wkfReset();
@@ -331,11 +331,11 @@ void wkfInit() {
 	wkfWriteOffset(0);
 	
 	unsigned int switches = wkfReadSwitches();
-	print_gecko("GOT Switches: %08X\r\n", switches);
+	print_gecko("OBTETNIDOS Switches: %08X\r\n", switches);
 
 	// SD card detect
 	if ((wkfGetSlotStatus() & 0x000F0000)==0x00070000 || special_3 == 0xFFFFFFFF) {
-		uiDrawObj_t *msgBox = DrawMessageBox(D_INFO,"No SD Card");
+		uiDrawObj_t *msgBox = DrawMessageBox(D_INFO,"No hay SD");
 		DrawPublish(msgBox);
 		sleep(3);
 		DrawDispose(msgBox);
@@ -359,15 +359,15 @@ void wkfInit() {
 		wkfRead(&wkfBuffer[0], 0x200, 0);
 		if((wkfBuffer[0x1FF] != 0xAA)) {
 			// No FAT!
-			uiDrawObj_t *msgBox = DrawMessageBox(D_INFO,"SD Card detected but failed to initialise.\nPlease try again");
-			print_gecko("SD Card detected but failed to initialise.\nPlease try again\r\n");
+			uiDrawObj_t *msgBox = DrawMessageBox(D_INFO,"SD detectada pero fallo al inicializarse.\nIntentalo de nuevo");
+			print_gecko("SD detectada pero fallo al inicializarse.\nIntentalo de nuevo\r\n");
 			DrawPublish(msgBox);
 			sleep(5);
 			DrawDispose(msgBox);
 			wkfInitialized = 0;
 		} 
 		else {
-			print_gecko("FAT detected\r\n");
+			print_gecko("FAT detectado\r\n");
 			wkfInitialized = 1;
 		}
 	}
@@ -388,7 +388,7 @@ void wkfReinit() {
 	
 	// Read first sector of SD card
 	wkfRead(&wkfBuffer[0], 0x200, 0);
-	print_gecko("Reinit complete\r\n");
+	print_gecko("Reiniciar completo\r\n");
 	wkfInitialized = 0;
 }
 

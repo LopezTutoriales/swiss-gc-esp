@@ -18,17 +18,17 @@ static lwp_t httpd_handle = LWP_THREAD_NULL;
 const static char http_200[] = "HTTP/1.1 200 OK\r\n";
 
 const static char indexdata[] = "<html>" \
-                                "<head><title>Swiss httpd page</title></head>" \
+                                "<head><title>Pagina httpd de Swiss</title></head>" \
                                 "<body>" \
-                                "<a href=\"dvd.iso\">Dump DVD Disc</a><br>" \
-                                "<a href=\"ipl.bin\">Dump IPL Mask ROM</a><br>" \
+                                "<a href=\"dvd.iso\">Dumpear Disco DVD</a><br>" \
+                                "<a href=\"ipl.bin\">Dumpear Mascara IPL ROM</a><br>" \
                                 "</body>" \
                                 "</html>";
 
 const static char nodisc[] = "<html>" \
-                             "<head><title>Swiss httpd page</title></head>" \
+                             "<head><title>Pagina httpd de Swiss</title></head>" \
                              "<body>" \
-                             "No DVD Disc found for dumping. Error is: %s" \
+                             "DVD no encontrado para dumpear. Error: %s" \
                              "</body>" \
                              "</html>";
 
@@ -43,7 +43,7 @@ const static char http_get_ipl[] = "GET /ipl.bin HTTP/1.1\r\n";
 void *httpd (void *arg) {
 //---------------------------------------------------------------------------------
 
-	print_gecko("httpd Alive\r\n");
+	print_gecko("httpd Vivo\r\n");
 	s32 sock, csock;
 	int ret;
 	u32	clientlen;
@@ -56,7 +56,7 @@ void *httpd (void *arg) {
 	sock = net_socket (AF_INET, SOCK_STREAM, IPPROTO_IP);
 
 	if (sock == INVALID_SOCKET) {
-      print_gecko ("Cannot create a socket!\r\n");
+      print_gecko ("Imposible crear socket!\r\n");
     } else {
 
 		memset (&server, 0, sizeof (server));
@@ -68,19 +68,19 @@ void *httpd (void *arg) {
 		ret = net_bind (sock, (struct sockaddr *) &server, sizeof (server));
 		
 		if ( ret ) {
-			print_gecko("Error %d binding socket!\r\n", ret);
+			print_gecko("Error %d vinculando socket!\r\n", ret);
 		} else {
 			if ( (ret = net_listen( sock, 5)) ) {
-				print_gecko("Error %d listening!\r\n", ret);
+				print_gecko("Error %d escuchando!\r\n", ret);
 			} else {
 				while(1) {
 					csock = net_accept (sock, (struct sockaddr *) &client, &clientlen);
 					if ( csock < 0 ) {
-						print_gecko("Error connecting socket %d!\r\n", csock);
+						print_gecko("Error conectando al socket %d!\r\n", csock);
 						while(1);
 					}
 
-					print_gecko("Connecting port %d from %s\r\n", client.sin_port, inet_ntoa(client.sin_addr));
+					print_gecko("Puerto de conexion %d desde %s\r\n", client.sin_port, inet_ntoa(client.sin_addr));
 					memset (temp, 0, 1026);
 					ret = net_recv (csock, temp, 1024, 0);
 

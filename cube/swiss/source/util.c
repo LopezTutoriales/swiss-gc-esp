@@ -212,7 +212,7 @@ int find_existing_entry(char *entry, bool load) {
 	// get the device handler for it
 	DEVICEHANDLER_INTERFACE *entryDevice = getDeviceFromPath(entry);
 	if(entryDevice) {
-		print_gecko("Device required for entry [%s]\r\n", entryDevice->deviceName);
+		print_gecko("Dispostivo requerido para entrada [%s]\r\n", entryDevice->deviceName);
 		
 		// Init the device if it isn't one we were about to browse anyway
 		if(devices[DEVICE_CUR] == entryDevice || !entryDevice->init(entryDevice->initial)) {
@@ -259,13 +259,13 @@ int find_existing_entry(char *entry, bool load) {
 			return RECENT_ERR_ENT_MISSING;
 		}
 	}
-	print_gecko("Device was not found\r\n");
+	print_gecko("Dispositivo no encontrado\r\n");
 	return RECENT_ERR_DEV_MISSING;
 }
 
 bool deleteFileOrDir(file_handle* entry) {
 	if(entry->fileAttrib == IS_DIR) {
-		print_gecko("Entering dir for deletion: %s\r\n", entry);
+		print_gecko("Entrando en dir. para borrar: %s\r\n", entry);
 		file_handle* dirEntries = NULL;
 		int dirEntryCount = devices[DEVICE_CUR]->readDir(entry, &dirEntries, -1);
 		int i;
@@ -275,11 +275,11 @@ bool deleteFileOrDir(file_handle* entry) {
 			}
 		}
 		if(dirEntries) free(dirEntries);
-		print_gecko("Finally, deleting empty directory: %s\r\n", entry);
+		print_gecko("Finalmente, borrando directorio vacio: %s\r\n", entry);
 		return !devices[DEVICE_CUR]->deleteFile(entry);
 	}
 	if(entry->fileAttrib == IS_FILE) {
-		print_gecko("Deleting file: %s\r\n", entry);
+		print_gecko("Borrando archivo: %s\r\n", entry);
 		return !devices[DEVICE_CUR]->deleteFile(entry);
 	}
 	return true;	// IS_SPECIAL can be ignored.
@@ -307,9 +307,9 @@ int formatBytes(char *string, off_t count, blksize_t blocksize, bool metric)
 
 		for (int i = 0; units[i].unit[metric]; i++)
 			if (count >= units[i].value[metric])
-				return sprintf(string, "%.3g %s (%jd blocks)", count / units[i].value[metric], units[i].unit[metric], (intmax_t)blocks);
+				return sprintf(string, "%.3g %s (%jd bloques)", count / units[i].value[metric], units[i].unit[metric], (intmax_t)blocks);
 
-		return sprintf(string, "%jd bytes (%jd blocks)", (intmax_t)count, (intmax_t)blocks);
+		return sprintf(string, "%jd bytes (%jd bloques)", (intmax_t)count, (intmax_t)blocks);
 	}
 
 	for (int i = 0; units[i].unit[metric]; i++)

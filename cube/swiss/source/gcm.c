@@ -229,7 +229,7 @@ int parse_gcm(file_handle *file, file_handle *file2, ExecutableFile *filesToPatc
 	ApploaderHeader apploaderHeader;
 	devices[DEVICE_CUR]->seekFile(file,0x2440,DEVICE_HANDLER_SEEK_SET);
 	if(devices[DEVICE_CUR]->readFile(file,&apploaderHeader,sizeof(ApploaderHeader)) != sizeof(ApploaderHeader)) {
-		DrawPublish(DrawMessageBox(D_FAIL, "Failed to read Apploader Header"));
+		DrawPublish(DrawMessageBox(D_FAIL, "Fallo al leer Apploader Header"));
 		while(1);
 	}
 	filesToPatch[numFiles].file = file;
@@ -257,7 +257,7 @@ int parse_gcm(file_handle *file, file_handle *file2, ExecutableFile *filesToPatc
 			DOLHEADER dolhdr;
 			devices[DEVICE_CUR]->seekFile(file,diskHeader->DOLOffset,DEVICE_HANDLER_SEEK_SET);
 			if(devices[DEVICE_CUR]->readFile(file,&dolhdr,DOLHDRLENGTH) != DOLHDRLENGTH) {
-				DrawPublish(DrawMessageBox(D_FAIL, "Failed to read Main DOL Header"));
+				DrawPublish(DrawMessageBox(D_FAIL, "Fallo al leer Header de DOL Principal"));
 				while(1);
 			}
 			filesToPatch[numFiles].file = file;
@@ -543,7 +543,7 @@ int patch_gcm(ExecutableFile *filesToPatch, int numToPatch) {
 
 	if(devices[DEVICE_PATCHES] == NULL) {
 		if(numToPatch > 0) {
-			uiDrawObj_t *msgBox = DrawPublish(DrawMessageBox(D_FAIL, "No writable device available.\nAn SD Card Adapter is necessary in order\nfor patches to survive application restart."));
+			uiDrawObj_t *msgBox = DrawPublish(DrawMessageBox(D_FAIL, "Dispositivo grabable no disponible.\nUn adaptador SD es necesario para que los\nparches se mantengan al reiniciar la app."));
 			sleep(5);
 			DrawDispose(msgBox);
 		}
@@ -555,13 +555,13 @@ int patch_gcm(ExecutableFile *filesToPatch, int numToPatch) {
 	for(i = 0; i < numToPatch; i++) {
 		ExecutableFile *fileToPatch = &filesToPatch[i];
 
-		sprintf(txtbuffer, "Patching File %i/%i\n%s [%iKB]",i+1,numToPatch,fileToPatch->name,fileToPatch->size/1024);
+		sprintf(txtbuffer, "Parcheando archivo %i/%i\n%s [%iKB]",i+1,numToPatch,fileToPatch->name,fileToPatch->size/1024);
 		
 		if(fileToPatch->size > 8*1024*1024) {
-			print_gecko("Skipping %s %iKB too large\r\n", fileToPatch->name, fileToPatch->size/1024);
+			print_gecko("Omitiendo %s %iKB muy grande\r\n", fileToPatch->name, fileToPatch->size/1024);
 			continue;
 		}
-		print_gecko("Checking %s %iKb\r\n", fileToPatch->name, fileToPatch->size/1024);
+		print_gecko("Comprobando %s %iKb\r\n", fileToPatch->name, fileToPatch->size/1024);
 		
 		if(!strcasecmp(fileToPatch->name, "iwanagaD.dol") || !strcasecmp(fileToPatch->name, "switcherD.dol")) {
 			continue;	// skip unused PSO files
@@ -574,15 +574,15 @@ int patch_gcm(ExecutableFile *filesToPatch, int numToPatch) {
 		
 		devices[DEVICE_CUR]->seekFile(fileToPatch->file,fileToPatch->offset,DEVICE_HANDLER_SEEK_SET);
 		int ret = devices[DEVICE_CUR]->readFile(fileToPatch->file,buffer,sizeToRead);
-		print_gecko("Read from %08X Size %08X - Result: %08X\r\n", fileToPatch->offset, sizeToRead, ret);
+		print_gecko("Leyendo desde %08X Tam. %08X - Resultado: %08X\r\n", fileToPatch->offset, sizeToRead, ret);
 		if(ret != sizeToRead) {
-			message = "Failed to read file!";
+			message = "Fallo al leer archivo!";
 			goto fail;
 		}
 		
 		fileToPatch->hash = XXH3_64bits(buffer, sizeToRead);
 		if(!valid_file_xxh3(&GCMDisk, fileToPatch)) {
-			message = "Failed integrity check!";
+			message = "Fallo de verificacion!";
 			goto fail;
 		}
 		
@@ -590,7 +590,7 @@ int patch_gcm(ExecutableFile *filesToPatch, int numToPatch) {
 		if(fileToPatch->type == PATCH_DOL_PRS || fileToPatch->type == PATCH_OTHER_PRS) {
 			int ret = pso_prs_decompress_buf(buffer, &newBuffer, fileToPatch->size);
 			if(ret < 0) {
-				message = "Failed to decompress file!";
+				message = "Fallo al descomprimir archivo!";
 				goto fail;
 			}
 			sizeToRead = ret;
@@ -610,7 +610,7 @@ int patch_gcm(ExecutableFile *filesToPatch, int numToPatch) {
 		if(fileToPatch->type == PATCH_DOL_PRS || fileToPatch->type == PATCH_OTHER_PRS) {
 			int ret = pso_prs_compress2(buffer, oldBuffer, sizeToRead, fileToPatch->size);
 			if(ret < 0) {
-				message = "Failed to recompress file!";
+				message = "Fallo al comprimir archivo!";
 				free(oldBuffer);
 				goto fail;
 			}
@@ -632,7 +632,7 @@ int patch_gcm(ExecutableFile *filesToPatch, int numToPatch) {
 					deviceHandler_setStatEnabled(1);
 					free(buffer);
 					DrawDispose(progBox);
-					uiDrawObj_t *msgBox = DrawPublish(DrawMessageBox(D_FAIL, "No writable device available.\nAn SD Card Adapter is necessary in order\nfor patches to survive application restart."));
+					uiDrawObj_t *msgBox = DrawPublish(DrawMessageBox(D_FAIL, "Dispositivo grabable no disponible.\nUn adaptador SD es necesario para que los\nparches se mantengan al reiniciar la app."));
 					sleep(5);
 					DrawDispose(msgBox);
 					return 0;
@@ -661,7 +661,7 @@ int patch_gcm(ExecutableFile *filesToPatch, int numToPatch) {
 				if(devices[DEVICE_PATCHES]->seekFile(fileToPatch->patchFile, -sizeof(old_hash), DEVICE_HANDLER_SEEK_END) == sizeToRead &&
 					devices[DEVICE_PATCHES]->readFile(fileToPatch->patchFile, &old_hash, sizeof(old_hash)) == sizeof(old_hash) &&
 					XXH128_isEqual(old_hash, new_hash)) {
-					print_gecko("Hash matched, no need to patch again\r\n");
+					print_gecko("Hash coincide, parches no necesarios\r\n");
 					num_patched++;
 					free(buffer);
 					DrawDispose(progBox);
@@ -669,11 +669,11 @@ int patch_gcm(ExecutableFile *filesToPatch, int numToPatch) {
 				}
 				else {
 					devices[DEVICE_PATCHES]->deleteFile(fileToPatch->patchFile);
-					print_gecko("Hash mismatch, writing patch again\r\n");
+					print_gecko("Hash no coincide, escribiendo parches\r\n");
 				}
 			}
 			// Otherwise, write a file out for this game with the patched buffer inside.
-			print_gecko("Writing patch file: %s %i bytes (disc offset %08X)\r\n", fileToPatch->patchFile->name, fileToPatch->size, fileToPatch->offset);
+			print_gecko("Escribiendo archivo de parche: %s %i bytes (offset disco %08X)\r\n", fileToPatch->patchFile->name, fileToPatch->size, fileToPatch->offset);
 			devices[DEVICE_PATCHES]->seekFile(fileToPatch->patchFile, 0, DEVICE_HANDLER_SEEK_SET);
 			if(devices[DEVICE_PATCHES]->writeFile(fileToPatch->patchFile, buffer, sizeToRead) == sizeToRead &&
 				devices[DEVICE_PATCHES]->writeFile(fileToPatch->patchFile, &new_hash, sizeof(new_hash)) == sizeof(new_hash) &&
@@ -682,7 +682,7 @@ int patch_gcm(ExecutableFile *filesToPatch, int numToPatch) {
 			}
 			else {
 				devices[DEVICE_PATCHES]->deleteFile(fileToPatch->patchFile);
-				message = "Failed to write file!";
+				message = "Fallo al escribir archivo!";
 				goto fail;
 			}
 		}
@@ -716,7 +716,7 @@ u64 calc_fst_entries_size(char *FST) {
 // Returns the number of filesToPatch and fills out the filesToPatch array passed in (pre-allocated)
 int read_fst(file_handle *file, file_handle** dir, u64 *usedSpace) {
 
-	print_gecko("Read dir for directory: %s\r\n",file->name);
+	print_gecko("Leer dir para directorio: %s\r\n",file->name);
 	char	filename[PATHNAME_MAX];
 	int		numFiles = 1, idx = 0;
 	int		isRoot = file->fileBase == 0;

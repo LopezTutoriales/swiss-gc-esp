@@ -91,7 +91,7 @@ void dvd_motor_off()
 void dvd_set_offset(u64 offset)
 {
 	if(is_gamecube() && isXenoGC) {
-		print_gecko("XenoGC offset set\r\n");
+		print_gecko("Offset XenoGC fijado\r\n");
 		dvd[0] = 0x2e;
 		dvd[1] = 0;
 		dvd[2] = 0x28000000;
@@ -287,22 +287,22 @@ void dvd_enable_patches()
 	if(patchCode == NULL) {
 		return;	// Unsupported drive
 	}
-	print_gecko("Drive date %08X\r\nUnlocking drive\r\n",(u32)(driveVersion&0xFFFFFFFF));
+	print_gecko("Fecha Lector %08X\r\nDesbloqueando lector\r\n",(u32)(driveVersion&0xFFFFFFFF));
 	dvd_unlock();
-	print_gecko("Unlocking drive - done\r\nWrite patch\r\n");
+	print_gecko("Desbloqueando lector - hecho\r\nEscribir parche\r\n");
 	dvd_writemem_array(0xff40d000, patchCode, 0x1F0);
 	dvd_writemem_32(0x804c, 0x00d04000);
-	print_gecko("Write patch - done\r\nSet extension %08X\r\n",dvd_get_error());
+	print_gecko("Escribir parche - hecho\r\nFijar extension %08X\r\n",dvd_get_error());
 	dvd_setextension();
-	print_gecko("Set extension - done\r\nUnlock again %08X\r\n",dvd_get_error());
+	print_gecko("Fijar extension - hecho\r\nDesbloquear de nuevo %08X\r\n",dvd_get_error());
 	dvd_unlock();
-	print_gecko("Unlock again - done\r\nDebug Motor On %08X\r\n",dvd_get_error());
+	print_gecko("Desbloquear de nuevo - hecho\r\nMotor Depura. On %08X\r\n",dvd_get_error());
 	dvd_motor_on_extra();
-	print_gecko("Debug Motor On - done\r\nSet Status %08X\r\n",dvd_get_error());
+	print_gecko("Motor Depura. On - hecho\r\nFijar Estado %08X\r\n",dvd_get_error());
 	dvd_setstatus();
-	print_gecko("Set Status - done %08X\r\n",dvd_get_error());
+	print_gecko("Fijar Estado - hecho %08X\r\n",dvd_get_error());
 	dvd_read_id();
-	print_gecko("Read ID %08X\r\n",dvd_get_error());
+	print_gecko("ID Lectura %08X\r\n",dvd_get_error());
 }
 
 

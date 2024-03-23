@@ -71,7 +71,7 @@ int gcloaderWriteFrags(u32 discNum, file_frag *fragList, u32 totFrags) {
 		return ret;
 	}
 	for(i = 0; i < totFrags; i++) {
-		print_gecko("Frag %i: ofs in file: [0x%08X] len [0x%08X] LBA on SD [0x%08llX]\r\n",
+		print_gecko("Frag %i: ofs en arch.: [0x%08X] long [0x%08X] LBA en SD [0x%08llX]\r\n",
 					i, fragList[i].offset, fragList[i].size, fragList[i].fileBase);
 		ret = __gcloaderCmdImm(fragList[i].offset, fragList[i].size, fragList[i].fileBase);
 		if(ret == 0) {

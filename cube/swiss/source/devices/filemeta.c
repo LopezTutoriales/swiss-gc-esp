@@ -159,13 +159,13 @@ void populate_game_meta(file_handle *f, u32 bannerOffset, u32 bannerSize) {
 	f->meta->banner = memalign(32,BNR_PIXELDATA_LEN);
 	memcpy(f->meta->banner,blankbanner.pixelData,BNR_PIXELDATA_LEN);
 	if(bannerOffset == -1 || bannerOffset + bannerSize > f->size) {
-		print_gecko("Banner not found or out of range\r\n");
+		print_gecko("Banner no encontrado o fuera de rango\r\n");
 	}
 	else if(bannerSize) {
 		BNR *banner = memalign(32, bannerSize);
 		devices[DEVICE_CUR]->seekFile(f, bannerOffset, DEVICE_HANDLER_SEEK_SET);
 		if(devices[DEVICE_CUR]->readFile(f, banner, bannerSize) != bannerSize) {
-			print_gecko("Banner read failed %i from offset %08X\r\n", bannerSize, bannerOffset);
+			print_gecko("Leer banner fallo %i desde offset %08X\r\n", bannerSize, bannerOffset);
 		}
 		else {
 			if(!memcmp(banner->magic, "BNR1", 4)) {
@@ -353,7 +353,7 @@ void populate_meta(file_handle *f) {
 			free(bannerFile);
 		}
 		else if (f->fileAttrib == IS_SPECIAL) {
-			f->meta->displayName = "Up to parent directory";
+			f->meta->displayName = "Ir a directorio principal";
 		}
 	}
 }

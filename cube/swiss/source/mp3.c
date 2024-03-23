@@ -20,7 +20,7 @@ s32 mp3Reader(void *cbdata, void *dst, s32 size) {
 
 uiDrawObj_t* updatescreen_mp3(file_handle *file, int state, int numFiles, int curMP3) {
 	uiDrawObj_t* player = DrawEmptyBox(10,100, getVideoMode()->fbWidth-10, 400);
-	sprintf(txtbuffer, "%s -  Volume (%i%%)", (state == PLAYER_PAUSE ? "Paused":"Playing"), (int)(((float)volume/(float)256)*100));
+	sprintf(txtbuffer, "%s -  Volumen (%i%%)", (state == PLAYER_PAUSE ? "Pausado":"Reproduciendo"), (int)(((float)volume/(float)256)*100));
 	DrawAddChild(player, DrawStyledLabel(640/2, 130, txtbuffer, 1.0f, true, defaultColor));
 	sprintf(txtbuffer, "(%i/%i) %s",curMP3, numFiles,getRelativeName(file->name));
 	float scale = GetTextScaleToFitInWidth(txtbuffer, getVideoMode()->fbWidth-10-10);
@@ -30,9 +30,9 @@ uiDrawObj_t* updatescreen_mp3(file_handle *file, int state, int numFiles, int cu
 	float percentPlayed = (float)(((float)file->offset / (float)file->size) * 30);
 	txtbuffer[(int)percentPlayed] = '*';
 	DrawAddChild(player, DrawStyledLabel(640/2, 210, txtbuffer, 1.0f, true, defaultColor));
-	DrawAddChild(player, DrawStyledLabel(640/2, 300, "(<-) Rewind (->) Forward (X) Vol+ (Y) Vol-", 1.0f, true, defaultColor));
-	DrawAddChild(player, DrawStyledLabel(640/2, 330, "(B) Stop (L) Prev (R) Next (Start) Pause", 1.0f, true, defaultColor));
-	sprintf(txtbuffer, "Shuffle is currently %s press (Z) to toggle", (useShuffle ? "on":"off"));
+	DrawAddChild(player, DrawStyledLabel(640/2, 300, "(<-) Rebobinar (->) Adelantar (X) Vol+ (Y) Vol-", 1.0f, true, defaultColor));
+	DrawAddChild(player, DrawStyledLabel(640/2, 330, "(B) Parar (L) Anterior (R) Siguiente (Start) Pausar", 1.0f, true, defaultColor));
+	sprintf(txtbuffer, "Aleatorio esta %s pulsa (Z) para cambiar", (useShuffle ? "activado":"desactivado"));
 	DrawAddChild(player, DrawStyledLabel(640/2, 360, txtbuffer, 1.0f, true, defaultColor));
 	return player;
 }

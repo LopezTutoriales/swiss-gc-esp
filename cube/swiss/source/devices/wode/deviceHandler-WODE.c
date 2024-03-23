@@ -41,7 +41,7 @@ s32 startupWode() {
 	if(OpenWode() == 0) {
 		CloseWode();
 		if(OpenWode() == 0) {
-			uiDrawObj_t *msgBox = DrawMessageBox(D_FAIL,"No WODE found! Press A");
+			uiDrawObj_t *msgBox = DrawMessageBox(D_FAIL,"WODE no encontrado! Pulsa A");
 			DrawPublish(msgBox);
 			wait_press_A();
 			DrawDispose(msgBox);
@@ -51,7 +51,7 @@ s32 startupWode() {
 	// Wode initialised, return success
 	device_versions *wode_version_info = calloc(1, sizeof(device_versions));
 	if(GetVersions(wode_version_info)) {
-		print_gecko("WODE initialised: Loader:%04X WODE:%04X FPGA:%04X HW:%02X\r\n",
+		print_gecko("WODE iniciado: Loader:%04X WODE:%04X FPGA:%04X HW:%02X\r\n",
 			wode_version_info->loader_version, wode_version_info->wode_version,
 			wode_version_info->fpga_version, wode_version_info->hw_version);
 		return 0;
@@ -66,7 +66,7 @@ device_info* deviceHandler_WODE_info(file_handle* file) {
 s32 deviceHandler_WODE_readDir(file_handle* ffile, file_handle** dir, u32 type){	
 
 	if(!wodeInited) return 0;
-	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Reading WODE"));
+	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Leyendo WODE"));
 	
 	//we don't care about partitions, just files!
 	while(!GetTotalISOs()) {
@@ -93,7 +93,7 @@ s32 deviceHandler_WODE_readDir(file_handle* ffile, file_handle** dir, u32 type){
 				(*dir)[num_entries].size = DISC_SIZE;
 				(*dir)[num_entries].fileAttrib = IS_FILE;
 				memcpy(&(*dir)[num_entries].other, &tmp, sizeof(ISOInfo_t));
-				print_gecko("Adding WODE entry: %s part:%08X iso:%08X region:%08X\r\n",
+				print_gecko("Agregando entrada WODE: %s part:%08X iso:%08X region:%08X\r\n",
 					&tmp.name[0], tmp.iso_partition, tmp.iso_number, tmp.iso_region);
 				num_entries++;
 			}
@@ -138,7 +138,7 @@ s32 deviceHandler_WODE_setupFile(file_handle* file, file_handle* file2, Executab
 		file_frag *fragList = NULL;
 		u32 numFrags = 0;
 		
-		print_gecko("Save Patch device found\r\n");
+		print_gecko("Dispositivo guardar Parches encontrado\r\n");
 		
 		// Look for patch files, if we find some, open them and add them as fragments
 		file_handle patchFile;
@@ -289,7 +289,7 @@ DEVICEHANDLER_INTERFACE __device_wode = {
 	.deviceUniqueId = DEVICE_ID_C,
 	.hwName = "WODE",
 	.deviceName = "WODE Jukebox",
-	.deviceDescription = "Supported File System(s): FAT32, NTFS, EXT2/3, HPFS",
+	.deviceDescription = "Formato(s) soportado(s): FAT32, NTFS, EXT2/3, HPFS",
 	.deviceTexture = {TEX_WODEIMG, 116, 40, 120, 40},
 	.features = FEAT_READ|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_HYPERVISOR,
 	.emulable = EMU_READ|EMU_MEMCARD,

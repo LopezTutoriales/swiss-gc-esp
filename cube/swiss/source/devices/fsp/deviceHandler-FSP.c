@@ -131,7 +131,7 @@ s32 deviceHandler_FSP_setupFile(file_handle* file, file_handle* file2, Executabl
 	
 	// Check if there are any fragments in our patch location for this game
 	if(devices[DEVICE_PATCHES] != NULL) {
-		print_gecko("Save Patch device found\r\n");
+		print_gecko("Dispositivo para guardar parche encont.\r\n");
 		
 		// Look for patch files, if we find some, open them and add them as fragments
 		file_handle patchFile;
@@ -333,18 +333,18 @@ u32 deviceHandler_FSP_emulated() {
 char* deviceHandler_FSP_status(file_handle* file) {
 	switch(file->status) {
 		case E_NONET:
-			return "Network has not been initialised";
+			return "Red no iniciada";
 		case E_CHECKCONFIG:
-			return "Check FSP Configuration";
+			return "Chequea Configuracion de FSP";
 	}
 	return NULL;
 }
 
 DEVICEHANDLER_INTERFACE __device_fsp = {
 	.deviceUniqueId = DEVICE_ID_E,
-	.hwName = "Broadband Adapter",
-	.deviceName = "File Service Protocol",
-	.deviceDescription = "Configurable via the settings screen",
+	.hwName = "Adaptador Broadband",
+	.deviceName = "Protocolo Servicio Arch.",
+	.deviceDescription = "Configurable a traves de los ajustes",
 	.deviceTexture = {TEX_BBA, 140, 64, 140, 64},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_BOOT_GCM|FEAT_THREAD_SAFE|FEAT_HYPERVISOR|FEAT_PATCHES|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_AUDIO_STREAMING|EMU_ETHERNET,

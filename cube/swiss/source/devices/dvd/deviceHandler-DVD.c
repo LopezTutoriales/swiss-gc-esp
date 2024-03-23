@@ -52,103 +52,103 @@ char *dvd_error_str()
 	case 0:
 	  break;
 	case 1:
-	  strcpy(&error_str[0],"Lid open");
+	  strcpy(&error_str[0],"Tapa abierta");
 	  break;
 	case 2:
-	  strcpy(&error_str[0],"No disk/Disk changed");
+	  strcpy(&error_str[0],"Sin disco/Disco cambiado");
 	  break;
 	case 3:
-	  strcpy(&error_str[0],"No disk");
+	  strcpy(&error_str[0],"Sin disco");
 	  break;
 	case 4:
-	  strcpy(&error_str[0],"Motor off");
+	  strcpy(&error_str[0],"Motor apagado");
 	  break;
 	case 5:
-	  strcpy(&error_str[0],"Disk not initialized");
+	  strcpy(&error_str[0],"Disco no iniciado");
 	  break;
   }
   switch(err&0xFFFFFF) {
 	case 0:
 	  break;
 	case 0x020400:
-	  strcat(&error_str[0]," Motor Stopped");
+	  strcat(&error_str[0]," Motor Parado");
 	  break;
 	case 0x020401:
-	  strcat(&error_str[0]," Disk ID not read");
+	  strcat(&error_str[0]," ID Disco no leido");
 	  break;
 	case 0x023A00:
-	  strcat(&error_str[0]," Medium not present / Cover opened");
+	  strcat(&error_str[0]," Medio no presente / Tapa abierta");
 	  break;
 	case 0x030200:
-	  strcat(&error_str[0]," No Seek complete");
+	  strcat(&error_str[0]," Buscar no completado");
 	  break;
 	case 0x031100:
-	  strcat(&error_str[0]," UnRecoverd read error");
+	  strcat(&error_str[0]," Error de lectura irrecuperable");
 	  break;
 	case 0x040800:
-	  strcat(&error_str[0]," Transfer protocol error");
+	  strcat(&error_str[0]," Error protocolo de transf.");
 	  break;
 	case 0x052000:
-	  strcat(&error_str[0]," Invalid command operation code");
+	  strcat(&error_str[0]," Comando no valido");
 	  break;
 	case 0x052001:
-	  strcat(&error_str[0]," Audio Buffer not set");
+	  strcat(&error_str[0]," Buffer de Audio no config.");
 	  break;
 	case 0x052100:
-	  strcat(&error_str[0]," Logical block address out of range");
+	  strcat(&error_str[0]," Bloque logico fuera de rango");
 	  break;
 	case 0x052400:
-	  strcat(&error_str[0]," Invalid Field in command packet");
+	  strcat(&error_str[0]," Campo invalido en paquete de comando");
 	  break;
 	case 0x052401:
-	  strcat(&error_str[0]," Invalid audio command");
+	  strcat(&error_str[0]," Comando de audio no valido");
 	  break;
 	case 0x052402:
-	  strcat(&error_str[0]," Configuration out of permitted period");
+	  strcat(&error_str[0]," Config. fuera de periodo permitido");
 	  break;
 	case 0x053000:
 	  strcat(&error_str[0]," DVD-R"); //?
 	  break;
 	case 0x053100:
-	  strcat(&error_str[0]," Wrong Read Type"); //?
+	  strcat(&error_str[0]," Tipo de lectura incorrecto"); //?
 	  break;
 	case 0x056300:
-	  strcat(&error_str[0]," End of user area encountered on this track");
+	  strcat(&error_str[0]," Fin de area encontrada en esta pista");
 	  break;
 	case 0x062800:
-	  strcat(&error_str[0]," Medium may have changed");
+	  strcat(&error_str[0]," El medio puede haber cambiado");
 	  break;
 	case 0x0B5A01:
-	  strcat(&error_str[0]," Operator medium removal request");
+	  strcat(&error_str[0]," Solicitud de eliminacion de medio");
 	  break;
   }
   if(!error_str[0])
-	sprintf(&error_str[0],"Unknown %08X",err);
+	sprintf(&error_str[0],"Desconocido %08X",err);
   return &error_str[0];
 }
 
 int initialize_disc(u32 streaming) {
 	int patched = NORMAL_MODE;
-	uiDrawObj_t* progBar = DrawPublish(DrawProgressBar(true, 0, "DVD Initializing"));
+	uiDrawObj_t* progBar = DrawPublish(DrawProgressBar(true, 0, "Iniciando DVD"));
 	if(is_gamecube())
 	{
 		// Reset WKF hard to allow for a real disc to be read if SD is removed
 		if(wkfDetected || (__wkfSpiReadId() != 0 && __wkfSpiReadId() != 0xFFFFFFFF)) {
-			print_gecko("Detected Wiikey Fusion with SPI Flash ID: %08X\r\n",__wkfSpiReadId());
+			print_gecko("Detectado Wiikey Fusion con ID FLash SPI: %08X\r\n",__wkfSpiReadId());
 			__wkfReset();
 			print_gecko("WKF RESET\r\n");
 			wkfDetected = 1;
 		}
 
 		DrawDispose(progBar);
-		progBar = DrawPublish(DrawProgressBar(true, 0, "Resetting DVD drive - Detect Media"));
+		progBar = DrawPublish(DrawProgressBar(true, 0, "Reseteando Lector DVD - Detectar Medios"));
 		dvd_reset();
 		npdp_start();
 		dvd_read_id();
 		// Avoid lid open scenario
 		if((dvd_get_error()>>24) && (dvd_get_error()>>24 != 1)) {
 			DrawDispose(progBar);
-			progBar = DrawPublish(DrawProgressBar(true, 0, "Possible DVD Backup - Enabling Patches"));
+			progBar = DrawPublish(DrawProgressBar(true, 0, "Posible Backup DVD - Habilitando Parches"));
 			dvd_enable_patches();
 			if(!dvd_get_error()) {
 				patched=DEBUG_MODE;
@@ -267,11 +267,11 @@ s32 deviceHandler_DVD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 	//GCOS or Cobra MultiGame DVD Disc
 	if((dvdDiscTypeInt == COBRA_MULTIGAME_DISC)||(dvdDiscTypeInt == GCOSD5_MULTIGAME_DISC)||(dvdDiscTypeInt == GCOSD9_MULTIGAME_DISC)) {
 
-		print_gecko("Multi game disc type %i detected\r\n", dvdDiscTypeInt);
+		print_gecko("Juego multi disco %i detectado\r\n", dvdDiscTypeInt);
 		if(drive_status == NORMAL_MODE) {
 			// This means we're using a drivechip, so our multigame command will be different.
 			isXenoGC = 1;
-			print_gecko("Drive isn't patched, drivechip is present.\r\n");
+			print_gecko("Lector DVD no parcheado, chip ya presente.\r\n");
 		}
 		//Read in the whole table of offsets
 		tmpTable = (unsigned int*)memalign(32,MAX_MULTIGAME*4);
@@ -287,7 +287,7 @@ s32 deviceHandler_DVD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 				num_entries++;
 			}
 		}
-		print_gecko("%i entries found\r\n", num_entries);
+		print_gecko("%i entradas encontradas\r\n", num_entries);
 
 		if(num_entries <= 0) { return num_entries; }
 		// malloc the directory structure
@@ -299,7 +299,7 @@ s32 deviceHandler_DVD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 			if(num > 0) {
 				(*dir)[num-1].size = tmpOffset - (*dir)[num-1].fileBase;
 			}
-			print_gecko("fileBase is %016llX isGC? %s\r\n", tmpOffset, isGC ? "yes" : "no");
+			print_gecko("Base es %016llX es GC? %s\r\n", tmpOffset, isGC ? "si" : "no");
 			if((tmpOffset%(isGC?0x8000:0x20000)==0) && (tmpOffset<(isGC?DISC_SIZE:WII_D9_SIZE))) {
 				DVD_Read(&tmpName[0],tmpOffset+32,64);
 				concatf_path((*dir)[num].name, ffile->name, "%.64s.gcm", &tmpName[0]);
@@ -397,25 +397,25 @@ s32 deviceHandler_DVD_setupFile(file_handle* file, file_handle* file2, Executabl
 	// Multi-Game disc audio streaming setup
 	if((dvdDiscTypeInt == COBRA_MULTIGAME_DISC)||(dvdDiscTypeInt == GCOSD5_MULTIGAME_DISC)||(dvdDiscTypeInt == GCOSD9_MULTIGAME_DISC)) {
 		if(swissSettings.audioStreaming && !isXenoGC) {
-			uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "One moment, setting up audio streaming."));
+			uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Un momento, configurando streaming audio."));
 			dvd_motor_off();
-			print_gecko("Set extension %08X\r\n",dvd_get_error());
+			print_gecko("Fijar extension %08X\r\n",dvd_get_error());
 			dvd_setextension();
-			print_gecko("Set extension - done\r\nUnlock %08X\r\n",dvd_get_error());
+			print_gecko("Fijar extension - hecho\r\nDesbloquear %08X\r\n",dvd_get_error());
 			dvd_unlock();
-			print_gecko("Unlock - done\r\nDebug Motor On %08X\r\n",dvd_get_error());
+			print_gecko("Desbloquear - hecho\r\nMotor depura. On %08X\r\n",dvd_get_error());
 			dvd_motor_on_extra();
-			print_gecko("Debug Motor On - done\r\nSet Status %08X\r\n",dvd_get_error());
+			print_gecko("Motor depura. On - done\r\nFijar Estado %08X\r\n",dvd_get_error());
 			dvd_setstatus();
-			print_gecko("Set Status - done %08X\r\n",dvd_get_error());
+			print_gecko("Fijar Estado - hecho %08X\r\n",dvd_get_error());
 			dvd_read_id();
-			print_gecko("Read ID %08X\r\n",dvd_get_error());
+			print_gecko("ID Lectura %08X\r\n",dvd_get_error());
 			dvd_set_streaming(swissSettings.audioStreaming);
 			DrawDispose(msgBox);
 		}
 		dvd_set_offset(file->fileBase);
 		file->status = STATUS_MAPPED;
-		print_gecko("Streaming %s %08X\r\n",swissSettings.audioStreaming?"Enabled":"Disabled",dvd_get_error());
+		print_gecko("Streaming %s %08X\r\n",swissSettings.audioStreaming?"activado":"desactivado",dvd_get_error());
 	}
 	if(numToPatch < 0) {
 		return 1;
@@ -426,7 +426,7 @@ s32 deviceHandler_DVD_setupFile(file_handle* file, file_handle* file2, Executabl
 		file_frag *fragList = NULL;
 		u32 numFrags = 0;
 		
-		print_gecko("Save Patch device found\r\n");
+		print_gecko("Aparato guardar parche encont.\r\n");
 		
 		// Look for patch files, if we find some, open them and add them as fragments
 		file_handle patchFile;
@@ -580,9 +580,9 @@ char* deviceHandler_DVD_status(file_handle* file) {
 
 DEVICEHANDLER_INTERFACE __device_dvd = {
 	.deviceUniqueId = DEVICE_ID_0,
-	.hwName = "Disc Drive",
+	.hwName = "Lector DVD",
 	.deviceName = "DVD",
-	.deviceDescription = "Supported File System(s): GCM, ISO 9660, Multi-Game",
+	.deviceDescription = "Formato(s) soportado(s): GCM, ISO 9660, Multi-Juego",
 	.deviceTexture = {TEX_GCDVDSMALL, 84, 84, 84, 84},
 	.features = FEAT_READ|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_HYPERVISOR|FEAT_AUDIO_STREAMING,
 	.emulable = EMU_READ|EMU_MEMCARD,

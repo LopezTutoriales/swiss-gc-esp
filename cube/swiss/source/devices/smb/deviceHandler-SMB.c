@@ -67,7 +67,7 @@ device_info* deviceHandler_SMB_info(file_handle* file) {
 void readDeviceInfoSMB() {
 	struct statvfs buf;
 	memset(&buf, 0, sizeof(statvfs));
-	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Reading filesystem info for smb:/"));
+	uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Leyendo info de archivos para smb:/"));
 	int res = statvfs("smb:/", &buf);
 	initial_SMB_info.freeSpace = !res ? (u64)((u64)buf.f_bfree*(u64)buf.f_bsize):0LL;
 	initial_SMB_info.totalSpace = !res ? (u64)((u64)buf.f_blocks*(u64)buf.f_bsize):0LL;
@@ -257,20 +257,20 @@ bool deviceHandler_SMB_test() {
 char* deviceHandler_SMB_status(file_handle* file) {
 	switch(file->status) {
 		case E_NONET:
-			return "Network has not been initialised";
+			return "Red no iniciada";
 		case E_CHECKCONFIG:
-			return "Check SMB Configuration";
+			return "Chequea los ajustes de SMB";
 		case E_CONNECTFAIL:
-			return "Error connecting to SMB share";
+			return "Error al conectar a SMB share";
 	}
 	return NULL;
 }
 
 DEVICEHANDLER_INTERFACE __device_smb = {
 	.deviceUniqueId = DEVICE_ID_8,
-	.hwName = "Broadband Adapter",
+	.hwName = "Adaptador de Red",
 	.deviceName = "SMB 1.0/CIFS",
-	.deviceDescription = "Configurable via the settings screen",
+	.deviceDescription = "Configurable en los ajustes",
 	.deviceTexture = {TEX_BBA, 140, 64, 140, 64},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_THREAD_SAFE,
 	.location = LOC_SERIAL_PORT_1,
