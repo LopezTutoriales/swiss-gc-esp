@@ -10,6 +10,7 @@
 #include "bba.h"
 #include "dvd.h"
 #include "main.h"
+#include "swiss.h"
 #include "util.h"
 #include "devices/dvd/deviceHandler-DVD.h"
 
@@ -43,7 +44,7 @@ const static char http_get_ipl[] = "GET /ipl.bin HTTP/1.1\r\n";
 void *httpd (void *arg) {
 //---------------------------------------------------------------------------------
 
-	print_gecko("httpd Vivo\r\n");
+	print_debug("httpd Funcionando\n");
 	s32 sock, csock;
 	int ret;
 	u32	clientlen;
@@ -56,7 +57,7 @@ void *httpd (void *arg) {
 	sock = net_socket (AF_INET, SOCK_STREAM, IPPROTO_IP);
 
 	if (sock == INVALID_SOCKET) {
-      print_gecko ("Imposible crear socket!\r\n");
+		print_debug("Imposible crear socket!\n");
     } else {
 
 		memset (&server, 0, sizeof (server));
@@ -68,19 +69,19 @@ void *httpd (void *arg) {
 		ret = net_bind (sock, (struct sockaddr *) &server, sizeof (server));
 		
 		if ( ret ) {
-			print_gecko("Error %d vinculando socket!\r\n", ret);
+			print_debug("Error %d vinculando socket!\n", ret);
 		} else {
 			if ( (ret = net_listen( sock, 5)) ) {
-				print_gecko("Error %d escuchando!\r\n", ret);
+				print_debug("Error %d escuchando!\n", ret);
 			} else {
 				while(1) {
 					csock = net_accept (sock, (struct sockaddr *) &client, &clientlen);
 					if ( csock < 0 ) {
-						print_gecko("Error conectando al socket %d!\r\n", csock);
+						print_debug("Error conectando al socket %d!\n", csock);
 						while(1);
 					}
 
-					print_gecko("Puerto de conexion %d desde %s\r\n", client.sin_port, inet_ntoa(client.sin_addr));
+					print_debug("Puerto de conexion %d desde %s\n", client.sin_port, inet_ntoa(client.sin_addr));
 					memset (temp, 0, 1026);
 					ret = net_recv (csock, temp, 1024, 0);
 
@@ -148,7 +149,7 @@ int is_httpd_in_use() {
 }
 
 void init_httpd_thread() {
-	if(net_initialized) {
+	if (net_initialized && httpd_handle == LWP_THREAD_NULL) {
 		LWP_CreateThread(	&httpd_handle,	/* thread handle */ 
 							httpd,			/* code */ 
 							NULL,			/* arg pointer for thread */

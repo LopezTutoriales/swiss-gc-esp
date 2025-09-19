@@ -22,11 +22,14 @@ volatile unsigned long* dvd = (volatile unsigned long*)0xCC006000;
 
 void dvd_reset()
 {
-	dvd[1] = 2;
-	volatile unsigned long v = *(volatile unsigned long*)0xcc003024;
-	*(volatile unsigned long*)0xcc003024 = (v & ~4) | 1;
-	sleep(1);
-	*(volatile unsigned long*)0xcc003024 = v | 5;
+	while(DVD_GetDriveStatus() == DVD_STATE_BUSY);
+	DVD_Pause();
+	DVD_Reset(DVD_RESETHARD);
+	usleep(1150000);
+	DVD_Reset(DVD_RESETHARD);
+	refreshDeviceCode(true);
+	DVD_Resume();
+	while(DVD_GetDriveStatus() == DVD_STATE_BUSY);
 }
 
 unsigned int dvd_read_id()
@@ -91,7 +94,7 @@ void dvd_motor_off()
 void dvd_set_offset(u64 offset)
 {
 	if(is_gamecube() && isXenoGC) {
-		print_gecko("Offset XenoGC fijado\r\n");
+		print_debug("XenoGC offset set\n");
 		dvd[0] = 0x2e;
 		dvd[1] = 0;
 		dvd[2] = 0x28000000;
@@ -287,22 +290,22 @@ void dvd_enable_patches()
 	if(patchCode == NULL) {
 		return;	// Unsupported drive
 	}
-	print_gecko("Fecha Lector %08X\r\nDesbloqueando lector\r\n",(u32)(driveVersion&0xFFFFFFFF));
+	print_debug("Fecha Lector %08X\nDesbloqueando lector\n",(u32)(driveVersion&0xFFFFFFFF));
 	dvd_unlock();
-	print_gecko("Desbloqueando lector - hecho\r\nEscribir parche\r\n");
+	print_debug("Desbloqueando lector - Hecho\nEscribir parche\n");
 	dvd_writemem_array(0xff40d000, patchCode, 0x1F0);
 	dvd_writemem_32(0x804c, 0x00d04000);
-	print_gecko("Escribir parche - hecho\r\nFijar extension %08X\r\n",dvd_get_error());
+	print_debug("Escribir parche - Hecho\nFijar extension %08X\n",dvd_get_error());
 	dvd_setextension();
-	print_gecko("Fijar extension - hecho\r\nDesbloquear de nuevo %08X\r\n",dvd_get_error());
+	print_debug("Fijar extension - Hecho\nDesbloquear de nuevo %08X\n",dvd_get_error());
 	dvd_unlock();
-	print_gecko("Desbloquear de nuevo - hecho\r\nMotor Depura. On %08X\r\n",dvd_get_error());
+	print_debug("Desbloquear de nuevo - Hecho\nMotor Depuracion encendido %08X\n",dvd_get_error());
 	dvd_motor_on_extra();
-	print_gecko("Motor Depura. On - hecho\r\nFijar Estado %08X\r\n",dvd_get_error());
+	print_debug("Motor Depuracion encendido - Hecho\nFijar Estado %08X\n",dvd_get_error());
 	dvd_setstatus();
-	print_gecko("Fijar Estado - hecho %08X\r\n",dvd_get_error());
+	print_debug("Fijar Estado - Hecho %08X\n",dvd_get_error());
 	dvd_read_id();
-	print_gecko("ID Lectura %08X\r\n",dvd_get_error());
+	print_debug("ID Lectura %08X\n",dvd_get_error());
 }
 
 
@@ -402,7 +405,7 @@ void npdp_start()
 	if(*(u16*)&buf[2] == 0x0200) {
 		npdp_inquiry(buf);
 		npdp_getid(buf);
-		print_gecko("NPDP ID: [%s]\r\n", buf);
+		print_debug("ID NPDP: [%s]\n", buf);
 	}
 	free(buf);
 }

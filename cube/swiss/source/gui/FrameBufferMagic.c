@@ -69,15 +69,20 @@ GXTexObj checkedTexObj;
 GXTexObj uncheckedTexObj;
 GXTexObj loadingTexObj;
 GXTexObj starTexObj;
-GXTexObj mp3imgTexObj;
+GXTexObj dirimgTexObj;
 GXTexObj dolimgTexObj;
 GXTexObj dolcliimgTexObj;
 GXTexObj elfimgTexObj;
 GXTexObj fileimgTexObj;
-GXTexObj dirimgTexObj;
+GXTexObj fpkgimgTexObj;
+GXTexObj gcmimgTexObj;
+GXTexObj mp3imgTexObj;
+GXTexObj tgcimgTexObj;
 GXTexObj gcloaderTexObj;
 GXTexObj m2loaderTexObj;
 GXTexObj eth2gcTexObj;
+GXTexObj flippyTexObj;
+GXTexObj gcnetTexObj;
 
 static char fbTextBuffer[256];
 
@@ -182,6 +187,7 @@ typedef struct drawFileBrowserButtonEvent {
 	char *displayName;
 	file_handle *file;
 	int mode;
+	int alpha;
 	bool isAutoLoadEntry;
 	bool isCarousel;	// Draw this as a full "card" style
 	int distFromMiddle;	// 0 = full, -1 spine only but large then gradually getting smaller as dist increases from 0
@@ -224,7 +230,7 @@ static uiDrawObj_t* addVideoEvent(uiDrawObj_t *event) {
 	if(videoEventQueue == NULL) {
 		videoEventQueue = calloc(1, sizeof(uiDrawObjQueue_t));
 		videoEventQueue->event = event;
-		//print_gecko("Added first event %08X (type %s)\r\n", (u32)videoEventQueue, typeStrings[event->type]);
+		//print_debug("Added first event %08X (type %s)\n", (u32)videoEventQueue, typeStrings[event->type]);
 		return event;
 	}
 	
@@ -235,31 +241,31 @@ static uiDrawObj_t* addVideoEvent(uiDrawObj_t *event) {
     current->next = calloc(1, sizeof(uiDrawObjQueue_t));
 	current->next->event = event;
 	event->disposed = false;
-	//print_gecko("Added a new event %08X (type %s)\r\n", (u32)event, typeStrings[event->type]);
+	//print_debug("Added a new event %08X (type %s)\n", (u32)event, typeStrings[event->type]);
 	return event;
 }
 
 static void clearNestedEvent(uiDrawObj_t *event) {
 	if(event && !event->disposed) {
-		print_gecko("Evento no eliminado!!\r\n");
-		print_gecko("Evento %08X (tipo %s)\r\n", (u32)event, typeStrings[event->type]);
+		print_debug("Evento no eliminado!!\n");
+		print_debug("Evento %08X (tipo %s)\n", (u32)event, typeStrings[event->type]);
 	}
 	
 	if(event->child && event->child != event) {
 		clearNestedEvent(event->child);
 	}
-	//print_gecko("Dispose nested event %08X\r\n", (u32)event);
+	//print_debug("Dispose nested event %08X\n", (u32)event);
 	if(event && event->data) {
 		// Free any attached data
 		if(event->type == EV_STYLEDLABEL) {
 			if(((drawStyledLabelEvent_t*)event->data)->string) {
-				//printf("Clear Nested EV_STYLEDLABEL\r\n");
+				//print_debug("Clear Nested EV_STYLEDLABEL\n");
 				free(((drawStyledLabelEvent_t*)event->data)->string);
 			}
 		}
 		else if(event->type == EV_FILEBROWSERBUTTON) {
 			if(((drawFileBrowserButtonEvent_t*)event->data)->displayName) {
-				//printf("Clear Nested EV_FILEBROWSERBUTTON\r\n");
+				//print_debug("Clear Nested EV_FILEBROWSERBUTTON\n");
 				free(((drawFileBrowserButtonEvent_t*)event->data)->displayName);
 			}
 			if(((drawFileBrowserButtonEvent_t*)event->data)->file) {
@@ -274,21 +280,21 @@ static void clearNestedEvent(uiDrawObj_t *event) {
 		}
 		else if(event->type == EV_SELECTABLEBUTTON) {
 			if(((drawSelectableButtonEvent_t*)event->data)->msg) {
-				//printf("Clear Nested EV_SELECTABLEBUTTON\r\n");
+				//print_debug("Clear Nested EV_SELECTABLEBUTTON\n");
 				free(((drawSelectableButtonEvent_t*)event->data)->msg);
 			}
 		}
 		else if(event->type == EV_TOOLTIP) {
 			if(((drawTooltipEvent_t*)event->data)->tooltip) {
-				//printf("Clear Nested EV_TOOLTIP\r\n");
+				//print_debug("Clear Nested EV_TOOLTIP\n");
 				free(((drawTooltipEvent_t*)event->data)->tooltip);
 			}
 		}
-		//printf("Clear Nested event->data\r\n");
+		//print_debug("Clear Nested event->data\n");
 		free(event->data);
 	}
 	if(event) {
-		//printf("Clear event\r\n");
+		//print_debug("Clear event\n");
 		memset(event, 0, sizeof(uiDrawObj_t));
 		free(event);
 	}
@@ -305,7 +311,7 @@ static void disposeEvent(uiDrawObj_t *event) {
 	// First node is what we're after.
 	while (current != NULL) {
 		if(current->event == event) {
-			//print_gecko("Disposing event %08X\r\n", (u32)current);
+			//print_debug("Disposing event %08X\n", (u32)current);
 			clearNestedEvent(current->event);
 			previous->next = current->next;
 			free(current);
@@ -323,10 +329,8 @@ static void init_textures()
 	TPL_OpenTPLFromMemory(&imagesTPL, (void *)images_tpl, images_tpl_size);
 	TPL_OpenTPLFromMemory(&buttonsTPL, (void *)buttons_tpl, buttons_tpl_size);
 	TPL_GetTextureCI(&imagesTPL, backdrop, &backdropTexObj, &backdropTlutObj, GX_TLUT0);
-	GX_InitTexObjFilterMode(&backdropTexObj, GX_LINEAR, GX_NEAR);
 	GX_InitTexObjUserData(&backdropTexObj, &backdropTlutObj);
 	TPL_GetTexture(&imagesTPL, backdrop_ind, &backdropIndTexObj);
-	GX_InitTexObjFilterMode(&backdropIndTexObj, GX_NEAR, GX_NEAR);
 	GX_InitTexObjUserData(&backdropIndTexObj, &backdropTexObj);
 	TPL_GetTexture(&imagesTPL, gcdvdsmall, &gcdvdsmallTexObj);
 	TPL_GetTextureCI(&imagesTPL, sdsmall, &sdsmallTexObj, &sdsmallTlutObj, GX_TLUT0);
@@ -334,18 +338,14 @@ static void init_textures()
 	TPL_GetTextureCI(&imagesTPL, hddimg, &hddTexObj, &hddTlutObj, GX_TLUT0);
 	GX_InitTexObjUserData(&hddTexObj, &hddTlutObj);
 	TPL_GetTextureCI(&imagesTPL, qoobimg, &qoobTexObj, &qoobTlutObj, GX_TLUT0);
-	GX_InitTexObjFilterMode(&qoobTexObj, GX_LINEAR, GX_NEAR);
 	GX_InitTexObjUserData(&qoobTexObj, &qoobTlutObj);
 	TPL_GetTexture(&imagesTPL, qoobimg_ind, &qoobIndTexObj);
-	GX_InitTexObjFilterMode(&qoobIndTexObj, GX_NEAR, GX_NEAR);
 	TPL_GetTexture(&imagesTPL, wodeimg, &wodeimgTexObj);
 	TPL_GetTexture(&imagesTPL, wiikeyimg, &wiikeyTexObj);
 	TPL_GetTexture(&imagesTPL, systemimg, &systemTexObj);
 	TPL_GetTextureCI(&imagesTPL, memcardimg, &memcardTexObj, &memcardTlutObj, GX_TLUT0);
-	GX_InitTexObjFilterMode(&memcardTexObj, GX_LINEAR, GX_NEAR);
 	GX_InitTexObjUserData(&memcardTexObj, &memcardTlutObj);
 	TPL_GetTexture(&imagesTPL, memcardimg_ind, &memcardIndTexObj);
-	GX_InitTexObjFilterMode(&memcardIndTexObj, GX_NEAR, GX_NEAR);
 	TPL_GetTextureCI(&imagesTPL, usbgeckoimg, &usbgeckoTexObj, &usbgeckoTlutObj, GX_TLUT0);
 	GX_InitTexObjUserData(&usbgeckoTexObj, &usbgeckoTlutObj);
 	TPL_GetTexture(&imagesTPL, bbaimg, &bbaTexObj);
@@ -356,28 +356,28 @@ static void init_textures()
 	TPL_GetTexture(&buttonsTPL, btnrefresh, &btnrefreshTexObj);
 	TPL_GetTexture(&buttonsTPL, btnexit, &btnexitTexObj);
 	TPL_GetTexture(&buttonsTPL, boxinner, &boxinnerTexObj);
-	GX_InitTexObjWrapMode(&boxinnerTexObj, GX_CLAMP, GX_CLAMP);
 	TPL_GetTexture(&buttonsTPL, boxouter, &boxouterTexObj);
-	GX_InitTexObjWrapMode(&boxouterTexObj, GX_CLAMP, GX_CLAMP);
 	TPL_GetTexture(&imagesTPL, ntscjimg, &ntscjTexObj);
 	TPL_GetTexture(&imagesTPL, ntscuimg, &ntscuTexObj);
 	TPL_GetTexture(&imagesTPL, palimg, &palTexObj);
 	TPL_GetTexture(&buttonsTPL, checked_32, &checkedTexObj);
 	TPL_GetTexture(&buttonsTPL, unchecked_32, &uncheckedTexObj);
-	GX_InitTexObjWrapMode(&uncheckedTexObj, GX_MIRROR, GX_MIRROR);
 	TPL_GetTexture(&buttonsTPL, loading_16, &loadingTexObj);
-	GX_InitTexObjWrapMode(&loadingTexObj, GX_MIRROR, GX_MIRROR);
 	TPL_GetTexture(&buttonsTPL, star_16, &starTexObj);
-	GX_InitTexObjWrapMode(&starTexObj, GX_MIRROR, GX_REPEAT);
-	TPL_GetTexture(&imagesTPL, mp3img, &mp3imgTexObj);
+	TPL_GetTexture(&imagesTPL, dirimg, &dirimgTexObj);
 	TPL_GetTexture(&imagesTPL, dolimg, &dolimgTexObj);
 	TPL_GetTexture(&imagesTPL, dolcliimg, &dolcliimgTexObj);
 	TPL_GetTexture(&imagesTPL, elfimg, &elfimgTexObj);
 	TPL_GetTexture(&imagesTPL, fileimg, &fileimgTexObj);
-	TPL_GetTexture(&imagesTPL, dirimg, &dirimgTexObj);
+	TPL_GetTexture(&imagesTPL, fpkgimg, &fpkgimgTexObj);
+	TPL_GetTexture(&imagesTPL, gcmimg, &gcmimgTexObj);
+	TPL_GetTexture(&imagesTPL, mp3img, &mp3imgTexObj);
+	TPL_GetTexture(&imagesTPL, tgcimg, &tgcimgTexObj);
 	TPL_GetTexture(&imagesTPL, gcloaderimg, &gcloaderTexObj);
 	TPL_GetTexture(&imagesTPL, m2loaderimg, &m2loaderTexObj);
 	TPL_GetTexture(&imagesTPL, eth2gcimg, &eth2gcTexObj);
+	TPL_GetTexture(&imagesTPL, flippyimg, &flippyTexObj);
+	TPL_GetTexture(&imagesTPL, gcnetimg, &gcnetTexObj);
 }
 
 static void drawInit()
@@ -581,12 +581,24 @@ static void _DrawImageNow(int textureId, int x, int y, int width, int height, in
 			break;
 		case TEX_GCLOADER:
 			texObj = &gcloaderTexObj; color = (GXColor) {216,216,216,255};
+			ts = 76;
 			break;
 		case TEX_M2LOADER:
 			texObj = &m2loaderTexObj;
 			break;
 		case TEX_ETH2GC:
 			texObj = &eth2gcTexObj; color = (GXColor) {216,216,216,255};
+			break;
+		case TEX_FLIPPY:
+			texObj = &flippyTexObj; color = (GXColor) {216,216,216,255};
+			t1 -= 18.0f/40.0f;
+			break;
+		case TEX_GCNET:
+			texObj = &gcnetTexObj; color = (GXColor) {216,216,216,255};
+			break;
+		case TEX_GCODE:
+			texObj = &gcloaderTexObj; color = (GXColor) {216,216,216,255};
+			t1 -= 12.0f/88.0f;
 			break;
 	}
 	
@@ -724,7 +736,12 @@ static void _DrawProgressBar(uiDrawObj_t *evt) {
 		GXColor loadingColor = (GXColor) {255,255,255,data->miniModeAlpha};
 		int numSegments = (data->percent*8)/100;
 		data->percent += (data->percent + 2 > 200 ? -200 : 2);
-		data->miniModeAlpha = (data->miniModeAlpha + 2 > 255 ? 255 : data->miniModeAlpha + 2);
+		if(data->speed != 0) {
+			data->miniModeAlpha = MIN(255, data->miniModeAlpha + 3);
+		}
+		else {
+			data->miniModeAlpha = MAX(0, data->miniModeAlpha - 3);
+		}
 		GX_InvalidateTexAll();
 		GX_LoadTexObj(&loadingTexObj, GX_TEXMAP0);
 		_drawRect(x-8, y-8, 16, 16, 0, loadingColor, (float) (numSegments)/8, (float) (numSegments+1)/8, 0.0f, 1.0f);
@@ -1102,16 +1119,16 @@ static void _DrawFileBrowserButton(uiDrawObj_t *evt) {
 				int bnr_x = x_mid - (bnr_width/2);
 				GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
 					GX_Position3f32((float) bnr_x,(float) data->y1+borderSize+40, 0.0f );
-					GX_Color4u8(255, 255, 255, 255);
+					GX_Color4u8(255, 255, 255, data->alpha);
 					GX_TexCoord2f32(0.0f,0.0f);
 					GX_Position3f32((float) (bnr_x+bnr_width),(float) data->y1+borderSize+40,0.0f );
-					GX_Color4u8(255, 255, 255, 255);
+					GX_Color4u8(255, 255, 255, data->alpha);
 					GX_TexCoord2f32(1.0f,0.0f);
 					GX_Position3f32((float) (bnr_x+bnr_width),(float) (data->y1+borderSize+40+bnr_height),0.0f );
-					GX_Color4u8(255, 255, 255, 255);
+					GX_Color4u8(255, 255, 255, data->alpha);
 					GX_TexCoord2f32(1.0f,1.0f);
 					GX_Position3f32((float) bnr_x,(float) (data->y1+borderSize+40+bnr_height),0.0f );
-					GX_Color4u8(255, 255, 255, 255);
+					GX_Color4u8(255, 255, 255, data->alpha);
 					GX_TexCoord2f32(0.0f,1.0f);
 				GX_End();
 				
@@ -1139,6 +1156,7 @@ static void _DrawFileBrowserButton(uiDrawObj_t *evt) {
 			// Region
 			if(file->meta && file->meta->regionTexObj) {
 				drawString(data->x2 - borderSize - 83, data->y2-(borderSize+46), "Region:", 0.45f, false, defaultColor);
+				drawInit();
 				_DrawTexObjNow(file->meta->regionTexObj, data->x2 - 44, data->y2-(borderSize+50), 32, 20, 0, 0.0f, 1.0f, 0.0f, 1.0f, 0);
 			}
 			
@@ -1147,19 +1165,19 @@ static void _DrawFileBrowserButton(uiDrawObj_t *evt) {
 			drawString(x_mid, data->y1+(borderSize*2)+10, data->displayName, scale, true, defaultColor);
 			
 			// Print specific stats
-			if(file->fileAttrib==IS_FILE) {
+			if(file->fileType==IS_FILE) {
 				if(devices[DEVICE_CUR] == &__device_wode) {
 					ISOInfo_t* isoInfo = (ISOInfo_t*)&file->other;
-					sprintf(fbTextBuffer,"Particion: %i, ISO: %i", isoInfo->iso_partition,isoInfo->iso_number);
+					sprintf(fbTextBuffer,"Partition: %i, ISO: %i", isoInfo->iso_partition,isoInfo->iso_number);
 				}
 				else if(devices[DEVICE_CUR] == &__device_card_a || devices[DEVICE_CUR] == &__device_card_b) {
-					formatBytes(stpcpy(fbTextBuffer, "Tam: "), file->size, 8192, false);
+					formatBytes(stpcpy(fbTextBuffer, "Size: "), file->size, 8192, false);
 				}
 				else if(devices[DEVICE_CUR] == &__device_qoob) {
-					formatBytes(stpcpy(fbTextBuffer, "Tam: "), file->size, 65536, false);
+					formatBytes(stpcpy(fbTextBuffer, "Size: "), file->size, 65536, false);
 				}
 				else {
-					formatBytes(stpcpy(fbTextBuffer, "Tam: "), file->size, 0, true);
+					formatBytes(stpcpy(fbTextBuffer, "Size: "), file->size, 0, !(devices[DEVICE_CUR]->location & LOC_SYSTEM));
 				}
 				drawString(data->x2 - (borderSize + (GetTextSizeInPixels(fbTextBuffer)*0.45f)), 
 					data->y2-(borderSize+24), fbTextBuffer, 0.45f, false, defaultColor);
@@ -1185,16 +1203,16 @@ static void _DrawFileBrowserButton(uiDrawObj_t *evt) {
 				GX_LoadTexObj(texObj, GX_TEXMAP0);
 				GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
 					GX_Position3f32((float)x_start,(float) data->y2-borderSize, 0.0f ); // bottom left
-					GX_Color4u8(255, 255, 255, 255);
+					GX_Color4u8(255, 255, 255, data->alpha);
 					GX_TexCoord2f32(0.0f,0.0f);
 					GX_Position3f32((float)x_start,(float) data->y2-bnr_width-borderSize,0.0f );	// top left
-					GX_Color4u8(255, 255, 255, 255);
+					GX_Color4u8(255, 255, 255, data->alpha);
 					GX_TexCoord2f32(1.0f,0.0f);
 					GX_Position3f32((float)x_start+bnr_height,(float) data->y2-bnr_width-borderSize,0.0f );	// top right
-					GX_Color4u8(255, 255, 255, 255);
+					GX_Color4u8(255, 255, 255, data->alpha);
 					GX_TexCoord2f32(1.0f,1.0f);
 					GX_Position3f32((float)x_start+bnr_height,(float) data->y2 - borderSize,0.0f );	// bottom right
-					GX_Color4u8(255, 255, 255, 255);
+					GX_Color4u8(255, 255, 255, data->alpha);
 					GX_TexCoord2f32(0.0f,1.0f);
 				GX_End();
 				
@@ -1231,16 +1249,16 @@ static void _DrawFileBrowserButton(uiDrawObj_t *evt) {
 			GX_LoadTexObj(texObj, GX_TEXMAP0);
 			GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
 				GX_Position3f32((float) data->x1+7,(float) data->y1+4, 0.0f );
-				GX_Color4u8(255, 255, 255, 255);
+				GX_Color4u8(255, 255, 255, data->alpha);
 				GX_TexCoord2f32(0.0f,0.0f);
 				GX_Position3f32((float) (data->x1+7+96),(float) data->y1+4,0.0f );
-				GX_Color4u8(255, 255, 255, 255);
+				GX_Color4u8(255, 255, 255, data->alpha);
 				GX_TexCoord2f32(1.0f,0.0f);
 				GX_Position3f32((float) (data->x1+7+96),(float) (data->y1+4+32),0.0f );
-				GX_Color4u8(255, 255, 255, 255);
+				GX_Color4u8(255, 255, 255, data->alpha);
 				GX_TexCoord2f32(1.0f,1.0f);
 				GX_Position3f32((float) data->x1+7,(float) (data->y1+4+32),0.0f );
-				GX_Color4u8(255, 255, 255, 255);
+				GX_Color4u8(255, 255, 255, data->alpha);
 				GX_TexCoord2f32(0.0f,1.0f);
 			GX_End();
 			
@@ -1263,7 +1281,7 @@ static void _DrawFileBrowserButton(uiDrawObj_t *evt) {
 		}
 		
 		// Print specific stats
-		if(file->fileAttrib==IS_FILE) {
+		if(file->fileType==IS_FILE) {
 			if(devices[DEVICE_CUR] == &__device_wode) {
 				ISOInfo_t* isoInfo = (ISOInfo_t*)&file->other;
 				sprintf(fbTextBuffer,"Particion: %i, ISO: %i", isoInfo->iso_partition,isoInfo->iso_number);
@@ -1275,7 +1293,7 @@ static void _DrawFileBrowserButton(uiDrawObj_t *evt) {
 				formatBytes(fbTextBuffer, file->size, 65536, false);
 			}
 			else {
-				formatBytes(fbTextBuffer, file->size, 0, true);
+				formatBytes(fbTextBuffer, file->size, 0, !(devices[DEVICE_CUR]->location & LOC_SYSTEM));
 			}
 			drawString(data->x2 - ((borderSize) + (GetTextSizeInPixels(fbTextBuffer)*0.45)), 
 				data->y1+borderSize+21, fbTextBuffer, 0.45f, false, defaultColor);
@@ -1298,7 +1316,7 @@ uiDrawObj_t* DrawFileBrowserButton(int x1, int y1, int x2, int y2, const char *m
 	if(eventData->file->meta) {
 		eventData->file->meta = calloc(1, sizeof(file_meta));
 		memcpy(eventData->file->meta, file->meta, sizeof(file_meta));
-		if(eventData->file->meta->banner) {
+		if(eventData->file->meta->banner && eventData->file->meta->bannerSum != 0xFFFF) {
 			// Make a copy cause we want this one to be killed off when the display event is disposed
 			eventData->file->meta->banner = memalign(32, eventData->file->meta->bannerSize);
 			memcpy(eventData->file->meta->banner, file->meta->banner, eventData->file->meta->bannerSize);
@@ -1313,6 +1331,10 @@ uiDrawObj_t* DrawFileBrowserButton(int x1, int y1, int x2, int y2, const char *m
 				GX_InitTexObjUserData(&eventData->file->meta->bannerTexObj, &eventData->file->meta->bannerTlutObj);
 			}
 		}
+		else {
+			eventData->file->meta->banner = NULL;
+			eventData->file->meta->bannerSize = 0;
+		}
 		if(eventData->file->meta->displayName == file->meta->bannerDesc.gameName) {
 			eventData->file->meta->displayName = eventData->file->meta->bannerDesc.gameName;
 		}
@@ -1321,23 +1343,35 @@ uiDrawObj_t* DrawFileBrowserButton(int x1, int y1, int x2, int y2, const char *m
 		}
 	}
 	// Hide extension when rendering certain files
-	if(file->fileAttrib == IS_FILE) {
-		if(endsWith(eventData->displayName,".dol")
-			|| endsWith(eventData->displayName,".dol+cli")
-			|| endsWith(eventData->displayName,".elf")
-			|| endsWith(eventData->displayName,".gci")
-			|| endsWith(eventData->displayName,".gcm")
-			|| endsWith(eventData->displayName,".gcs")
-			|| endsWith(eventData->displayName,".iso")
-			|| endsWith(eventData->displayName,".mp3")
-			|| endsWith(eventData->displayName,".sav")
-			|| endsWith(eventData->displayName,".tgc")) {
-			if(endsWith(eventData->displayName,".nkit.iso")) {
-				eventData->displayName[((u32)strrchr(eventData->displayName, '.'))-((u32)eventData->displayName)] = '\0';
+	if(eventData->file->fileType == IS_FILE) {
+		char *fileName = endsWith(eventData->file->name, eventData->displayName);
+		char *start = fileName ? eventData->displayName : getRelativeName(eventData->file->name);
+		char *end;
+		if((end = endsWith(start,".dol"))
+			|| (end = endsWith(start,".dol+cli"))
+			|| (end = endsWith(start,".elf"))
+			|| (end = endsWith(start,".fdi"))
+			|| (end = endsWith(start,".gci"))
+			|| (end = endsWith(start,".gcm.gcm"))
+			|| (end = endsWith(start,".gcm"))
+			|| (end = endsWith(start,".gcs"))
+			|| (end = endsWith(start,".nkit.iso.iso"))
+			|| (end = endsWith(start,".nkit.iso"))
+			|| (end = endsWith(start,".iso.iso"))
+			|| (end = endsWith(start,".iso"))
+			|| (end = endsWith(start,".mp3"))
+			|| (end = endsWith(start,".sav"))
+			|| (end = endsWith(start,".tgc"))) {
+			if(fileName) {
+				*end = '\0';
 			}
-			eventData->displayName[((u32)strrchr(eventData->displayName, '.'))-((u32)eventData->displayName)] = '\0';
+			else if(memmem(eventData->displayName, strlen(eventData->displayName), start, end - start)) {
+				end = mempcpy(eventData->displayName, start, end - start);
+				*end = '\0';
+			}
 		}
 	}
+	eventData->alpha = (eventData->file->fileAttrib & ATTRIB_HIDDEN) || *getRelativeName(eventData->file->name) == '.' ? 128 : 255;
 	eventData->isAutoLoadEntry = !strcmp(swissSettings.autoload, file->name) || !fnmatch(swissSettings.autoload, file->name, FNM_PATHNAME | FNM_PREFIX_DIRS);
 	
 	uiDrawObj_t *event = calloc(1, sizeof(uiDrawObj_t));
@@ -1358,7 +1392,7 @@ uiDrawObj_t* DrawFileCarouselEntry(int x1, int y1, int x2, int y2, const char *m
 	drawFileBrowserButtonEvent_t *data = (drawFileBrowserButtonEvent_t*)event->data;
 	data->isCarousel = true;
 	data->distFromMiddle = distFromMiddle;
-	//print_gecko("message %s dist = %i x: (%i -> %i) y: (%i -> %i)\r\n", message, distFromMiddle, x1, x2, y1, y2);
+	//print_debug("message %s dist = %i x: (%i -> %i) y: (%i -> %i)\n", message, distFromMiddle, x1, x2, y1, y2);
 	return event;
 }
 
@@ -1447,7 +1481,7 @@ static void _DrawTitleBar(uiDrawObj_t *evt) {
 	
 	drawString(40, 24, "Swiss v0.6 ESP", 1.5f, false, defaultColor);
 	drawString(40, 60, "Traducido por Lopez Tutoriales", 0.55f, false, defaultColor);
-	sprintf(fbTextBuffer, "cambios: %s rev: %s", GITREVISION, GITVERSION);
+	sprintf(fbTextBuffer, "cambios: %s rev: %s", GIT_COMMIT, GIT_REVISION);
 	drawString(412, 50, fbTextBuffer, 0.55f, false, defaultColor);
 	
 	s8 cputemp = SYS_GetCoreTemperature();
@@ -1523,6 +1557,13 @@ void DrawUpdateProgressBarDetail(uiDrawObj_t *evt, int percent, int speed, int t
 	data->speed = speed;
 	data->timestart = timestart;
 	data->timeremain = timeremain;
+	LWP_MutexUnlock(_videomutex);
+}
+
+void DrawUpdateProgressLoading(uiDrawObj_t *evt, int increment) {
+	LWP_MutexLock(_videomutex);
+	drawProgressEvent_t *data = (drawProgressEvent_t*)evt->data;
+	data->speed += increment;
 	LWP_MutexUnlock(_videomutex);
 }
 
@@ -1766,8 +1807,8 @@ void DrawCheatsSelector(const char *fileName) {
 
 void DrawGetTextEntry(int mode, const char *label, void *src, int size) {
 	
-	print_gecko("Modos DrawGetTextEntry: Alfa [%s] Numerico [%s] IP [%s] Enmascarado [%s] Arch [%s]\r\n", mode & ENTRYMODE_ALPHA ? "S":"N", mode & ENTRYMODE_NUMERIC ? "S":"N",
-																		mode & ENTRYMODE_IP ? "S":"N", mode & ENTRYMODE_MASKED ? "S":"N", mode & ENTRYMODE_FILE ? "S":"N");
+	print_debug("Modos DrawGetTextEntry: Alfa [%s] Numerico [%s] IP [%s] Enmascarado [%s] Arch [%s]\r\n", mode & ENTRYMODE_ALPHA ? "S":"N", mode & ENTRYMODE_NUMERIC ? "S":"N",
+																	mode & ENTRYMODE_IP ? "S":"N", mode & ENTRYMODE_MASKED ? "S":"N", mode & ENTRYMODE_FILE ? "S":"N");
 	char *text = calloc(1, size + 1);
 	if(mode & (ENTRYMODE_ALPHA|ENTRYMODE_IP)) {
 		strncpy(text, src, size);
@@ -1776,7 +1817,7 @@ void DrawGetTextEntry(int mode, const char *label, void *src, int size) {
 		u16 *src_int = (u16*)src;
 		itoa(*src_int, text, 10);
 	}
-	print_gecko("Text es [%s] tam. %i\r\n", text, size);
+	print_debug("Text es [%s] tam. %i\n", text, size);
 	
 	int caret = strlen(text);
 	int cur_row = 0;
@@ -1986,7 +2027,7 @@ void DrawGetTextEntry(int mode, const char *label, void *src, int size) {
 			// Handle normal character presses
 			if(pressed != '\b' && !(btns & PAD_BUTTON_Y)) {
 				if(caret < size && strlen(text) < size) {
-					//print_gecko("Pressed [%c]\r\n", pressed);
+					//print_debug("Pressed [%c]\n", pressed);
 					if(pressed == '\a')
 						pressed = ' ';
 					// Shuffle everything forward (don't want overwrite functionality)
@@ -2046,7 +2087,7 @@ void DrawGetTextEntry(int mode, const char *label, void *src, int size) {
 
 
 static void videoDrawEvent(uiDrawObj_t *videoEvent) {
-	//print_gecko("Draw event: %08X (type %s)\r\n", (u32)videoEvent, typeStrings[videoEvent->type]);
+	//print_debug("Draw event: %08X (type %s)\n", (u32)videoEvent, typeStrings[videoEvent->type]);
 	drawInit();
 	switch(videoEvent->type) {
 		case EV_TEXOBJ:
@@ -2138,6 +2179,10 @@ static void *videoUpdate(void *videoEventQueue) {
 			videoEventQueueEntry = videoEventQueueEntry->next;
 		}
 		
+		GXRModeObj *vmode = getVideoMode();
+		if(vmode->field_rendering) {
+			GX_SetViewportJitter(0.0f, 0.0f, vmode->fbWidth, vmode->efbHeight, 0.0f, 1.0f, VIDEO_GetNextField());
+		}
 		// Draw out every event
 		videoEventQueueEntry = (uiDrawObjQueue_t*)videoEventQueue;
 		while(videoEventQueueEntry != NULL) {
@@ -2147,12 +2192,14 @@ static void *videoUpdate(void *videoEventQueue) {
 		}
 		
 		//Copy EFB->XFB
-		GX_SetCopyClear((GXColor){0, 0, 0, 0xFF}, GX_MAX_Z24);
-		GX_CopyDisp(xfb[whichfb],GX_TRUE);
+		u16 width = vmode->fbWidth;
+		u16 height = GX_SetDispCopyYScale(getYScaleFactor(vmode->efbHeight, vmode->xfbHeight));
+		GX_CopyDisp(xfb[whichfb], GX_TRUE);
 		GX_DrawDone();
 
 		LWP_MutexUnlock(_videomutex);
 		VIDEO_SetNextFramebuffer(xfb[whichfb]);
+		VIDEO_ConfigurePan(0, 0, width, height);
 		VIDEO_Flush();
 		VIDEO_WaitVSync();
 	}
@@ -2170,14 +2217,14 @@ uiDrawObj_t* DrawPublish(uiDrawObj_t *evt)
 void DrawAddChild(uiDrawObj_t *parent, uiDrawObj_t *child)
 {
 	LWP_MutexLock(_videomutex);
-	//print_gecko("Added a new child event %08X (type %s)\r\n", (u32)child, typeStrings[child->type]);
+	//print_debug("Added a new child event %08X (type %s)\n", (u32)child, typeStrings[child->type]);
 	uiDrawObj_t *current = parent;
     while (current->child != NULL) {
         current = current->child;
     }
 	current->child = child;
 	child->disposed = false;
-	//print_gecko("Add child %08X (type %s) to parent %08X (type %s)\r\n", 
+	//print_debug("Add child %08X (type %s) to parent %08X (type %s)\n",
 	//	(u32)child, typeStrings[child->type], (u32)parent, typeStrings[parent->type]);
 	LWP_MutexUnlock(_videomutex);
 }
@@ -2189,13 +2236,17 @@ void DrawDispose(uiDrawObj_t *evt)
 	LWP_MutexUnlock(_videomutex);
 }
 
-void DrawInit() {
+void DrawInit(GXRModeObj *videoMode, bool black) {
+	setVideoMode(videoMode);
+	init_font();
 	init_textures();
 	uiDrawObj_t *container = DrawContainer();
-	DrawAddChild(container, DrawImage(TEX_BACKDROP, 0, 0, 640, 480, 0, 0.0f, 1.0f, 0.0f, 1.0f, 0));
-	DrawAddChild(container, DrawTitleBar());
-	buttonPanel = DrawMenuButtons(MENU_NOSELECT);
-	DrawAddChild(container, buttonPanel);
+	if(!black) {
+		DrawAddChild(container, DrawImage(TEX_BACKDROP, 0, 0, 640, 480, 0, 0.0f, 1.0f, 0.0f, 1.0f, 0));
+		DrawAddChild(container, DrawTitleBar());
+		buttonPanel = DrawMenuButtons(MENU_NOSELECT);
+		DrawAddChild(container, buttonPanel);
+	}
 	DrawPublish(container);
 	LWP_MutexInit(&_videomutex, 0);
 	LWP_CreateThread(&video_thread, videoUpdate, videoEventQueue, video_thread_stack, VIDEO_STACK_SIZE, VIDEO_PRIORITY);
@@ -2280,6 +2331,7 @@ void DrawShutdown() {
 	video_thread = LWP_THREAD_NULL;
 	LWP_JoinThread(thread, NULL);
 	GX_SetCurrentGXThread();
+	unsetVideoMode();
 }
 
 void DrawVideoMode(GXRModeObj *videoMode)
@@ -2287,6 +2339,9 @@ void DrawVideoMode(GXRModeObj *videoMode)
 	LWP_MutexLock(_videomutex);
 	if(getVideoMode() != videoMode) {
 		setVideoMode(videoMode);
+	}
+	else {
+		updateVideoMode(videoMode);
 	}
 	LWP_MutexUnlock(_videomutex);
 }

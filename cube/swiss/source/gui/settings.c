@@ -16,6 +16,8 @@
 #include "settings.h"
 #include "exi.h"
 #include "bba.h"
+#include "sram.h"
+#include "rt4k.h"
 
 #define page_x_ofs_key (30)
 #define page_x_ofs_val (410)
@@ -26,11 +28,13 @@
 
 ConfigEntry tempConfig;
 SwissSettings tempSettings;
-char *uiVModeStr[] = {"Auto", "480i", "480p", "576i", "576p"};
+char *enableUSBGeckoStr[] = {"No", "Ranura A", "Ranura B", "Puerto Serie 2"};
+char *uiVModeStr[] = {"Auto", "480i", "480sf", "480p", "576i", "576sf", "576p"};
 char *gameVModeStr[] = {"Auto", "480i", "480sf", "240p", "960i", "480p", "1080i60", "540p60", "576i", "576sf", "288p", "1152i", "576p", "1080i50", "540p50"};
 char *forceHScaleStr[] = {"Auto", "1:1", "11:10", "9:8", "640px", "656px", "672px", "704px", "720px"};
 char *forceVFilterStr[] = {"Auto", "0", "1", "2"};
-char *forceVJitterStr[] = {"Auto", "Activado", "Desactivado"};
+char *forceVJitterStr[] = {"Auto", "Activado", "Desactivado", "TAA"};
+char *fixPixelCenterStr[] = {"No", "1/24", "1/12"};
 char *forceWidescreenStr[] = {"No", "3D", "2D+3D"};
 char *forcePollRateStr[] = {"No", "VSync", "1000Hz", "500Hz", "350Hz", "300Hz", "250Hz", "200Hz", "150Hz", "150Hz", "120Hz", "120Hz", "100Hz"};
 char *invertCStickStr[] = {"No", "X", "Y", "X e Y"};
@@ -39,14 +43,16 @@ char *disableMCPGameIDStr[] = {"No", "Ranura A", "Ranura B", "Ranuras A y B"};
 char *disableVideoPatchesStr[] = {"Ninguno", "Juego", "Todos"};
 char *emulateAudioStreamStr[] = {"Desactivado", "Auto", "Activado"};
 char *emulateReadSpeedStr[] = {"No", "Si", "Wii"};
-char *igrTypeStr[] = {"Desactivado", "Reiniciar", "igr.dol"};
-char *aveCompatStr[] = {"CMPV-DOL", "GCVideo", "AVE-RVL", "AVE N-DOL", "AVE P-DOL"};
+char *disableMemoryCardStr[] = {"No", "Ranura A", "Ranura B"};
+char *igrTypeStr[] = {"Desactivado", "Reiniciar", "Apploader"};
+char *aveCompatStr[] = {"AVE N-DOL", "AVE P-DOL", "CMPV-DOL", "GCDigital", "GCVideo", "AVE-RVL"};
 char *fileBrowserStr[] = {"Estandar", "Ancho Completo", "Carrusel"};
 char *bs2BootStr[] = {"No", "Si", "Sonido 1", "Sonido 2"};
 char *sramLang[] = {"Ingles", "Aleman", "Frances", "Espanol", "Italiano", "Holandes", "Japones", "Ingles (US)"};
 char *recentListLevelStr[] = {"Desactivada", "Perezoso", "Activada"};
 
 static char *tooltips_global[PAGE_GLOBAL_MAX+1] = {
+	"Modo Inicio del Sistema:\n\nEstablece el modo de desarrollo o produccion en el hardware\nde desarrollo.\nEn hardware comercial con GC Loader o PicoLoader, la opcion\npor defecto omite la pantalla del logotipo de GameCube..",
 	"Sonido de Sistema:\n\nEstablece la salida de audio por defecto usada por la\nmayoria de los juegos",
 	"Posicion de Pantalla:\n\nAjusta la posicion horizontal de la pantalla en los juegos",
 	"Idioma de Sistema:\n\nIdioma del sistema usado en los juegos, principalmente en\njuegos PAL multi-5",
@@ -58,24 +64,27 @@ static char *tooltips_global[PAGE_GLOBAL_MAX+1] = {
 	NULL,
 	"Ocultar tipo de archivo desconocido:\n\nDesactivado - Muestra todos los archivos (por defecto)\nActivado - Swiss ocultara los tipo de archivos desconocidos\n\nTipo de archivos conocidos:\n Ejecutables de GameCube (.bin/.dol/.elf)\n Imagenes de disco (.gcm/.iso/.nkit.iso/.tgc)\n Musica MP3 (.mp3) Archivos de flash de WASP/WKF (.fzn)\n Archivos de Memory Card de GameCube (.gci/.gcs/.sav)\n Ejecutables de GameCube con parametros agregados (.dol+cli).",
 	"Aplanar directorio:\n\nAplana la estructura de un directorio coincidiendo con\nun patron global.",
+	"Inicializar DVD al iniciar:\n\nDesactivado - Dejarlo como esta (por defecto)\nActivado - Desactiva la senal de reinicio al iniciar Swiss\n\nEsto es necesario para que el boton de explusion funcione\nen la Panasonic Q cuando se utiliza Swiss como sustituto\nde IPL.",
 	"Parar motor de DVD al encender:\n\nDesactivado - Lo deja como esta (por defecto)\nActivado - Para el lector de DVD cuando Swiss inicia\n\nEsta opcion es principalmente para usuarios que arrancan\ndesde exploits de juegos donde el disco ya esta girando.",
 	"Velocidad de SD/IDE:\n\nLa velocidad para usar en el bus EXI para los adaptadores\nde tarjetas SD o en dispositivos IDE-EXI.\n32 MHz puede que no funcione en algunas tarjetas SD.",
 	"Compatibilidad AVE:\n\nEstablece el modo de compatibilidad para el codificador de\naudio/video utilizado.\n\nAVE N-DOL - Salida PAL como NTSC 50\nAVE P-DOL - Desactiva el modo de escaneo progresivo\nCMPV-DOL - Activa 1080i y 540p\nGCVideo - Aplica soluciones de firmware para GC (por defecto)\nAVE-RVL - Soporta 960i y 1152i sin WiiVideo.",
 	"Forzar Estado DTV:\n\nDesactivado - Usa la senal de la interfaz de video (por defecto)\nActivado - Fuerza la senal en caso de fallo de hardware.",
-	"Salida de Depurador USB Gecko:\n\nSi hay un USB Gecko en la ranura B, se depurara desde Swiss\ny el juego (si el juego soporta la salida a traves de OSReport).\nSi nada lee los datos del dispositivo, es posible que Swiss o\nel juego se cuelguen."
+	"Optimizar para RetroTINK-4K:\n\nModo compatibilidad GCDigital:\n Requiere la version de firmware 3.9.46.178 o posterior de\n FX-Framework y la version de firmware 1.9.4 o posterior de\n RetroTINK-4K, y el uso del modo DV1-Direct.\n\nModo compatibilidad GCVideo:\n Requiere la version de firmware 3.0 o posterior de\n GCVideo-DVI.",
+	"Activar USB Gecko:\n\nIf a USB Gecko is present, messages output to the debug UART\nby Swiss/games will be redirected. When the USB host isn't\nactively reading from the USB Gecko, it may cause the system\nto hang.\n\nwiiload is also made available for iterative development.",
+	"Esperar USB Gecko:\n\nWait for the transmit buffer to be read by the USB host when full."
 };
 
 static char *tooltips_network[PAGE_NETWORK_MAX+1] = {
-	"Iniciar red al encender:\n\nDesactivado - No inicia la red aunque este presente (por defecto)\nActivado - Si hay un adaptador de red, se iniciara al encender\n\nSi esta iniciada la red, navega a la IP en el navegador web\npara hacer un backup de varios datos."
+	"Iniciar red al encender:\n\nDesactivado - No inicia la red aunque este presente (por defecto)\nActivado - Si hay adaptador de red, se iniciara al encender\n\nSi esta iniciada la red, navega a la IP en el navegador web\npara hacer un backup de varios datos. Wiiload esta disponible\npara desarrollo iterativo."
 };
 
 static char *tooltips_game_global[PAGE_GAME_GLOBAL_MAX+1] = {
-	"Reinicio en el juego: (A + Z + Start)\n\nReiniciar: Reinicia parcialmente la GameCube\nigr.dol: Memoria baja (< 0x81300000) igr.dol en la raiz de\nla tarjeta SD.",
-	"Iniciar a traves de IPL:\n\nCuando esta activado, los juegos iniciaran con la pantalla\ndel logo de GameCube y el menu principal accesible con los\nparches aplicados.",
+	"Reinicio en el juego: (A + Z + Start)\n\nReiniciar - Realiza un reinicio en caliente con un\ndispositivo compatible\n\nApploader - Requiere de /swiss/patches/apploader.img",
+	"Cargar Menu de GameCube:\n\nCuando este activado, los juegos iniciaran con la\npantalla del logo de GameCube y el menu principal\naccesible con los parches aplicados.",
 	NULL,
 	NULL,
 	NULL,
-	NULL,
+	"Forzar Video Activo:\n\nUna solucion alternativa para la serie de versiones de\nfirmware GCVideo-DVI 3.0, que quedo obsoleta a partir\nde la version 3.1 y posteriores.",
 	NULL,
 	"Pausar para cambio de resolucion:\n\nCuando esta activado, un cambio en la resolucion de video\npausara el juego durante 2 segundos.",
 	"Autocargar todos los trucos:\n\nSi esta activado, y hay un archivo de trucos para un juego\nen particular\nEj: /swiss/cheats/GPOP8D.txt (en un dispositivo compatible)\ntodos los trucos del archivo se activaran.",
@@ -85,57 +94,32 @@ static char *tooltips_game_global[PAGE_GAME_GLOBAL_MAX+1] = {
 static char *tooltips_game[PAGE_GAME_MAX+1] = {
 	NULL,
 	NULL,
-	"Forzar Offset Vertical:\n\n+0 - Valor estandar\n-2 - GCVideo-DVI compatible (480i)\n-3 - GCVideo-DVI compatible (por defecto)\n-4 - GCVideo-DVI compatible (240p)\n-12 - Datapath VisionRGB (480p).",
+	"Forzar Offset Vertical:\n\n+0 - Valor estandar\n-2 - GCVideo-DVI compatible (480i)\n-3 - GCVideo-DVI compatible (por defecto)\n-4 - GCVideo-DVI compatible (240p)\n-12 - Datapath VisionRGB (480p)",
+	"Forzar Filtro Vertical:\n\nPara 480i y 576i:\n Auto - No hace nada (por defecto)\n\nPara 240p y 288p:\n 0 - 50%/50% de fusion con lineas inferiores\n 1 - 50%/50% de fusion con lineas superiores\n 2 - Descartar lineas pares\n\nPara otros modos de video:\n Auto - Equivalente a 0 (por defecto)\n 0 - Solo resuelve 3\327MSAA\n 1 - 18.75%/62.5%/18.75% de fusion\n 2 - 25%/50%/25% de fusion (antiparpadeo)",
 	NULL,
-	NULL,
+	"Arreglar Centro de Pixeles:\n\nNo confundir con el \223Arreglo de Pixeles 480p\224 en Wii.",
 	NULL,
 	NULL,
 	NULL,
 	"Forzar Tasa de Sondeo:\n\nVsync - Mayor compatibilidad\n1000Hz - Latencia de entrada mas baja.",
 	"Invertir Stick de Camara:\n\nNo - Deja el Stick C como esta (por defecto)\nX - Invierte el eje X en el Stick C\nY - Invierte el eje Y en el Stick C\nX e Y - Invierte ambos ejes en el Stick C",
 	"Cambiar Stick de Camara:\n\nNo - Deja el Stick C como esta (por defecto)\nX - Cambia el eje X del Stick C por el Stick de Control\nY - Cambia el eje Y del Stick C por el Stick de Control\nX e Y - Cambia ambos ejes del Stick C por el Stick de Control",
-	"Nivel de Trigger Digital:\n\nEstablece el umbral en el que se presiona completamente el\nBoton L/R.",
-	"Emular Streaming de Audio:\n\nEl streaming de audio es una caracteristica de hardware que\npermite que la unidad de disco reproduzca una pista de audio\ncomprimida en segundo plano.\n\nLa emulacion es necesaria para dispositivos que no estan\nconectados a la interfaz de DVD o para aquellos que no la\nimplementan independientemente.",
-	"Emular Velocidad de Lectura:\n\nNo - Inicia la transferencia inmediatamente (por defecto)\nSi - Retrasa la transferencia para simular la transferencia\n     de la unidad de disco de GameCube\nWii - Retrasa la transferencia para simular la transferencia\n      de la unidad de disco de Wii\n\nEsto es necesario para evitar errores de programacion ofuscados\npor el medio original o para hacer speedrunning.",
-	"Emular Adaptador de Red:\n\nSolo disponible con el Protocolo de Servicio de Archivos.\n\nLos paquetes no destinados al hipervisor se reenvian a la\nMAC virtual. La direccion MAC virtual es la misma que la\nMAC fisica. La MAC/PHY fisico conserva su configuracion en\nSwiss, incluyendo la velocidad de enlace.",
-	"Preferir Inicio Limpio:\n\nCuando esta activado, la GameCube se reiniciara y el juego\niniciara mediante procesos normales sin aplicar cambios.\nEs posible que se apliquen restricciones regionales.\n\nSolo disponible para dispositivos conectados a la interfaz\nde DVD."
+	"Nivel de Gatillo Digital:\n\nEstablece el umbral en el que se presiona completamente el\nBoton L/R.",
+	"Emular Streaming de Audio:\n\nAudio streaming is a hardware feature that allows a compressed\naudio track to be played in the background by the disc drive.\n\nEmulation is necessary for devices not attached to the\nDVD Interface, or for those not implementing it regardless.",
+	"Emulate Read Speed:\n\nNo - Start transfer immediately (default)\nYes - Delay transfer to simulate the GameCube disc drive\nWii - Delay transfer to simulate the Wii disc drive\n\nThis is necessary to avoid programming mistakes obfuscated\nby the original medium, or for speedrunning.",
+	"Emulate Broadband Adapter:\n\nOnly available with the File Service Protocol or an initialised\nETH2GC/GCNET module, where memory constraints permit.\n\nPackets not destined for the hypervisor are forwarded to\nthe virtual MAC. The virtual MAC address is the same as\nthe physical MAC. The physical MAC/PHY retain their\nconfiguration from Swiss, including link speed.",
+	"Disable Memory Card:\n\nSome games misbehave when unexpected devices are present\nin the memory card slots. When selected, the device will be\nhidden from the game if present at boot time.",
+	"Disable Hypervisor:\n\nDisables all features and bugfixes relying upon the hypervisor,\nalong with prepatching and patch persistence.\n\nOnly available to devices attached to the DVD Interface.",
+	"Prefer Clean Boot:\n\nWhen enabled, the GameCube will be reset and the game\nbooted through normal processes with no changes applied.\nRegion restrictions may be applicable.\n\nOnly available to devices attached to the DVD Interface.",
+	"RetroTINK-4K Profile:\n\nPresses a profile button through a configured ser2net TCP\nconnection to the RetroTINK-4K's serial port."
 };
-
-syssram* sram;
-syssramex* sramex;
 
 // Number of settings (including Back, Next, Save, Exit buttons) per page
 int settings_count_pp[5] = {PAGE_GLOBAL_MAX, PAGE_NETWORK_MAX, PAGE_GAME_GLOBAL_MAX, PAGE_GAME_DEFAULTS_MAX, PAGE_GAME_MAX};
 
-void refreshSRAM(SwissSettings *settings) {
-	bool writeSram = false;
-	sram = __SYS_LockSram();
-	if(!__SYS_CheckSram()) {
-		memset(sram, 0, sizeof(syssram));
-		sram->flags |= 0x10;
-		sram->flags |= 0x04;
-		writeSram = true;
-	}
-	settings->sramHOffset = sram->display_offsetH;
-	settings->sram60Hz = (sram->ntd >> 6) & 1;
-	settings->sramLanguage = sram->lang;
-	settings->sramProgressive = (sram->flags >> 7) & 1;
-	settings->sramStereo = (sram->flags >> 2) & 1;
-	settings->sramVideo = sram->flags & 3;
-	__SYS_UnlockSram(writeSram);
-	if(writeSram)
-		while(!__SYS_SyncSram());
-	sramex = __SYS_LockSramEx();
-	settings->configDeviceId = sramex->__padding0;
-	if(settings->configDeviceId > DEVICE_ID_MAX || !(getDeviceByUniqueId(settings->configDeviceId)->features & FEAT_CONFIG_DEVICE)) {
-		settings->configDeviceId = DEVICE_ID_UNK;
-	}
-	__SYS_UnlockSramEx(0);
-}
-
 char* getConfigDeviceName(SwissSettings *settings) {
 	DEVICEHANDLER_INTERFACE *configDevice = getDeviceByUniqueId(settings->configDeviceId);
-	return configDevice != NULL ? (char*)(configDevice->deviceName) : "Ninguno";
+	return configDevice != NULL ? (char*)(configDevice->deviceName) : "None";
 }
 
 char* get_tooltip(int page_num, int option) {
@@ -185,6 +169,7 @@ void drawSettingEntryNumeric(uiDrawObj_t* page, int *y, char *label, int num, bo
 uiDrawObj_t* settings_draw_page(int page_num, int option, ConfigEntry *gameConfig) {
 	uiDrawObj_t* page = DrawEmptyBox(20,60, getVideoMode()->fbWidth-20, 460);
 	char sramHOffsetStr[8];
+	char uiVModeStr[20];
 	char forceVOffsetStr[8];
 	char triggerLevelStr[8];
 	
@@ -208,7 +193,7 @@ uiDrawObj_t* settings_draw_page(int page_num, int option, ConfigEntry *gameConfi
 	// Stop DVD Motor on startup [Yes/No]
 	// Enable WiiRD debugging in Games [Yes/No]
 	// Enable File Management [Yes/No]
-	// Auto-load all cheats [Yes/No]
+	// Auto-load cheats [Yes/No]
 	// Init network at startup [Yes/No]
 	
 	/** Current Game Settings - only if a valid GCM file is highlighted (Page 3/) */
@@ -243,28 +228,33 @@ uiDrawObj_t* settings_draw_page(int page_num, int option, ConfigEntry *gameConfi
 		int scrollBarTabHeight = (int)((float)scrollBarHeight/(float)SET_PAGE_1_NEXT);
 		DrawAddChild(page, DrawVertScrollBar(getVideoMode()->fbWidth-45, page_y_ofs, 25, scrollBarHeight, (float)((float)option/(float)(SET_PAGE_1_NEXT-1)),scrollBarTabHeight));
 		DrawAddChild(page, DrawLabel(page_x_ofs_key, 65, "Ajustes Globales (1/5):"));
-		bool dtvEnable = swissSettings.aveCompat < 3;
-		bool dbgEnable = devices[DEVICE_CUR] != &__device_usbgecko && deviceHandler_getDeviceAvailable(&__device_usbgecko);
+		bool dtvEnable = !in_range(swissSettings.aveCompat, AVE_N_DOL_COMPAT, AVE_P_DOL_COMPAT);
+		bool rt4kEnable = in_range(swissSettings.aveCompat, GCDIGITAL_COMPAT, GCVIDEO_COMPAT);
 		// TODO settings to a new typedef that ties type etc all together, then draw a "page" of these rather than this at some point.
-		if(option < SET_STOP_MOTOR) {
-			drawSettingEntryString(page, &page_y_ofs, "Sonido de Sistema:", swissSettings.sramStereo ? "Estereo":"Mono", option == SET_SYS_SOUND, true);
+		if(option < SET_FLATTEN_DIR) {
+			drawSettingEntryString(page, &page_y_ofs, "Modo Inicio del Sistema:", swissSettings.sramBoot ? "Produccion" : "Predeterminado", option == SET_SYS_BOOTMODE, true);
+			drawSettingEntryString(page, &page_y_ofs, "Sonido de Sistema:", swissSettings.sramStereo ? "Estereo" : "Mono", option == SET_SYS_SOUND, true);
 			sprintf(sramHOffsetStr, "%+hi", swissSettings.sramHOffset);
 			drawSettingEntryString(page, &page_y_ofs, "Posicion de Pantalla:", sramHOffsetStr, option == SET_SCREEN_POS, true);
-			drawSettingEntryString(page, &page_y_ofs, "Idioma de Sistema:", swissSettings.sramLanguage > SRAM_LANG_MAX ? "Desconocido" : sramLang[swissSettings.sramLanguage], option == SET_SYS_LANG, true);
+			drawSettingEntryString(page, &page_y_ofs, "Idioma de Sistema:", sramLang[swissSettings.sramLanguage], option == SET_SYS_LANG, true);
 			drawSettingEntryString(page, &page_y_ofs, "Dispositivo de Configuracion:", getConfigDeviceName(&swissSettings), option == SET_CONFIG_DEV, true);
-			drawSettingEntryString(page, &page_y_ofs, "Modo de Video de Swiss:", uiVModeStr[swissSettings.uiVMode], option == SET_SWISS_VIDEOMODE, true);
+			sprintf(uiVModeStr, "%s%s", getVideoModeString(getVideoModeFromSwissSetting(swissSettings.uiVMode)), swissSettings.uiVMode == 0 ? " (Auto) " : "");
+			drawSettingEntryString(page, &page_y_ofs, "Modo de Video de Swiss:", uiVModeStr, option == SET_SWISS_VIDEOMODE, true);
 			drawSettingEntryString(page, &page_y_ofs, "Tipo de Explorador de Archivos:", fileBrowserStr[swissSettings.fileBrowserType], option == SET_FILEBROWSER_TYPE, true);
 			drawSettingEntryBoolean(page, &page_y_ofs, "Gestion de Archivos:", swissSettings.enableFileManagement, option == SET_FILE_MGMT, true);
 			drawSettingEntryString(page, &page_y_ofs, "Lista de Recientes:", recentListLevelStr[swissSettings.recentListLevel], option == SET_RECENT_LIST, true);
 			drawSettingEntryBoolean(page, &page_y_ofs, "Mostrar Archivos Ocultos:", swissSettings.showHiddenFiles, option == SET_SHOW_HIDDEN, true);
 			drawSettingEntryBoolean(page, &page_y_ofs, "Ocultar tipo de archivo desconocido:", swissSettings.hideUnknownFileTypes, option == SET_HIDE_UNK, true);
-			drawSettingEntryString(page, &page_y_ofs, "Aplanar directorio:", swissSettings.flattenDir, option == SET_FLATTEN_DIR, true);
 		} else {
-			drawSettingEntryBoolean(page, &page_y_ofs, "Parar motor de DVD al encender:", swissSettings.stopMotor, option == SET_STOP_MOTOR, true);
-			drawSettingEntryString(page, &page_y_ofs, "Velocidad de SD/IDE:", swissSettings.exiSpeed ? "32 MHz":"16 MHz", option == SET_EXI_SPEED, true);
+			drawSettingEntryString(page, &page_y_ofs, "Aplanar directorio:", swissSettings.flattenDir, option == SET_FLATTEN_DIR, true);
+			drawSettingEntryBoolean(page, &page_y_ofs, "Inicializar DVD al iniciar:", swissSettings.initDVDDriveAtStart, option == SET_INIT_DRIVE, true);
+			drawSettingEntryBoolean(page, &page_y_ofs, "Parar motor de DVD:", swissSettings.stopMotor, option == SET_STOP_MOTOR, true);
+			drawSettingEntryString(page, &page_y_ofs, "Velocidad de SD/IDE:", swissSettings.exiSpeed ? "32 MHz" : "16 MHz", option == SET_EXI_SPEED, true);
 			drawSettingEntryString(page, &page_y_ofs, "Compatibilidad AVE:", aveCompatStr[swissSettings.aveCompat], option == SET_AVE_COMPAT, true);
 			drawSettingEntryBoolean(page, &page_y_ofs, "Forzar Estado DTV:", swissSettings.forceDTVStatus, option == SET_FORCE_DTVSTATUS, dtvEnable);
-			drawSettingEntryBoolean(page, &page_y_ofs, "Salida de Depurador USB Gecko:", swissSettings.debugUSB, option == SET_ENABLE_USBGECKODBG, dbgEnable);
+			drawSettingEntryBoolean(page, &page_y_ofs, "Optimizar para RetroTINK-4K:", swissSettings.rt4kOptim, option == SET_RT4K_OPTIM, rt4kEnable);
+			drawSettingEntryString(page, &page_y_ofs, "Activar USB Gecko:", enableUSBGeckoStr[swissSettings.enableUSBGecko], option == SET_ENABLE_USBGECKO, true);
+			drawSettingEntryBoolean(page, &page_y_ofs, "Esperar USB Gecko:", swissSettings.waitForUSBGecko, option == SET_WAIT_USBGECKO, true);
 		}
 	}
 	else if(page_num == PAGE_NETWORK) {
@@ -295,23 +285,27 @@ uiDrawObj_t* settings_draw_page(int page_num, int option, ConfigEntry *gameConfi
 			drawSettingEntryString(page, &page_y_ofs, "Compartir SMB:", swissSettings.smbShare, option == SET_SMB_SHARE, netEnable);
 			drawSettingEntryString(page, &page_y_ofs, "Usuario SMB:", swissSettings.smbUser, option == SET_SMB_USER, netEnable);
 			drawSettingEntryString(page, &page_y_ofs, "Clave SMB:", "*****", option == SET_SMB_PASS, netEnable);
+			drawSettingEntryString(page, &page_y_ofs, "IP Host RetroTINK-4K:", swissSettings.rt4kHostIp, option == SET_RT4K_HOSTIP, netEnable);
+			drawSettingEntryNumeric(page, &page_y_ofs, "Puerto RetroTINK-4K:", swissSettings.rt4kPort, option == SET_RT4K_PORT, netEnable);
 		}
 	}
 	else if(page_num == PAGE_GAME_GLOBAL) {
 		DrawAddChild(page, DrawLabel(page_x_ofs_key, 65, "Ajustes Globales de Juego (3/5):"));
 		bool enabledVideoPatches = swissSettings.disableVideoPatches < 2;
 		bool emulatedMemoryCard = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_MEMCARD);
+		bool enabledHypervisor = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->features & FEAT_HYPERVISOR);
 		bool dbgEnable = devices[DEVICE_CUR] != &__device_usbgecko && deviceHandler_getDeviceAvailable(&__device_usbgecko);
-		drawSettingEntryString(page, &page_y_ofs, "Reinicio en el juego:", igrTypeStr[swissSettings.igrType], option == SET_IGR, true);
-		drawSettingEntryString(page, &page_y_ofs, "Iniciar a traves de IPL:", bs2BootStr[swissSettings.bs2Boot], option == SET_BS2BOOT, true);
+		drawSettingEntryString(page, &page_y_ofs, "Reinicio en el juego:", igrTypeStr[swissSettings.igrType], option == SET_IGR, enabledHypervisor);
+		drawSettingEntryString(page, &page_y_ofs, "Cargar Menu de GameCube:", bs2BootStr[swissSettings.bs2Boot], option == SET_BS2BOOT, true);
 		drawSettingEntryBoolean(page, &page_y_ofs, "Iniciar sin indicaciones:", swissSettings.autoBoot, option == SET_AUTOBOOT, true);
 		drawSettingEntryBoolean(page, &page_y_ofs, "Emular Memory Card:", swissSettings.emulateMemoryCard, option == SET_EMULATE_MEMCARD, emulatedMemoryCard);
-		drawSettingEntryString(page, &page_y_ofs, "Desactivar GameID MemCard PRO:", disableMCPGameIDStr[swissSettings.disableMCPGameID], option == SET_ENABLE_MCPGAMEID, true);
+		drawSettingEntryString(page, &page_y_ofs, "Desactivar MemCard PRO GameID:", disableMCPGameIDStr[swissSettings.disableMCPGameID], option == SET_DISABLE_MCPGAMEID, true);
 		drawSettingEntryBoolean(page, &page_y_ofs, "Forzar Video Activo:", swissSettings.forceVideoActive, option == SET_FORCE_VIDACTIVE, enabledVideoPatches);
-		drawSettingEntryString(page, &page_y_ofs, "Desactivar Parches de Video:", disableVideoPatchesStr[swissSettings.disableVideoPatches], option == SET_ENABLE_VIDPATCH, true);
-		drawSettingEntryBoolean(page, &page_y_ofs, "Pausar para cambio de resolucion:", swissSettings.pauseAVOutput, option == SET_PAUSE_AVOUTPUT, true);
+		drawSettingEntryString(page, &page_y_ofs, "Desactivar Parches de Video:", disableVideoPatchesStr[swissSettings.disableVideoPatches], option == SET_DISABLE_VIDPATCH, true);
+		drawSettingEntryBoolean(page, &page_y_ofs, "Pausar para cambio de resolucion:", swissSettings.pauseAVOutput, option == SET_PAUSE_AVOUTPUT, enabledHypervisor);
 		drawSettingEntryBoolean(page, &page_y_ofs, "Autocargar todos los trucos:", swissSettings.autoCheats, option == SET_ALL_CHEATS, true);
 		drawSettingEntryBoolean(page, &page_y_ofs, "Depuracion WiiRD:", swissSettings.wiirdDebug, option == SET_WIIRDDBG, dbgEnable);
+		drawSettingEntryString(page, &page_y_ofs, "Reset to defaults", NULL, option == SET_GLOBAL_DEFAULTS, true);
 	}
 	else if(page_num == PAGE_GAME_DEFAULTS) {
 		int settings_per_page = 10;
@@ -323,27 +317,34 @@ uiDrawObj_t* settings_draw_page(int page_num, int option, ConfigEntry *gameConfi
 		bool emulatedAudioStream = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_AUDIO_STREAMING);
 		bool emulatedReadSpeed = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_READ_SPEED);
 		bool emulatedEthernet = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_ETHERNET);
-		bool enabledCleanBoot = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location == LOC_DVD_CONNECTOR);
-		if(option < SET_DEFAULT_TRIGGER_LEVEL) {
+		bool enabledHypervisor = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->features & FEAT_HYPERVISOR);
+		bool enabledCleanBoot = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location & LOC_DVD_CONNECTOR);
+		bool rt4kEnable = is_rt4k_alive();
+		if(option < SET_DEFAULT_SWAP_CAMERA) {
 			drawSettingEntryString(page, &page_y_ofs, "Forzar Modo de Video:", gameVModeStr[swissSettings.gameVMode], option == SET_DEFAULT_FORCE_VIDEOMODE, enabledVideoPatches);
 			drawSettingEntryString(page, &page_y_ofs, "Forzar Escala Horizontal:", forceHScaleStr[swissSettings.forceHScale], option == SET_DEFAULT_HORIZ_SCALE, enabledVideoPatches);
 			sprintf(forceVOffsetStr, "%+hi", swissSettings.forceVOffset);
 			drawSettingEntryString(page, &page_y_ofs, "Forzar Offset Vertical:", forceVOffsetStr, option == SET_DEFAULT_VERT_OFFSET, enabledVideoPatches);
 			drawSettingEntryString(page, &page_y_ofs, "Forzar Filtro Vertical:", forceVFilterStr[swissSettings.forceVFilter], option == SET_DEFAULT_VERT_FILTER, enabledVideoPatches);
 			drawSettingEntryString(page, &page_y_ofs, "Forzar Renderizado de Campo:", forceVJitterStr[swissSettings.forceVJitter], option == SET_FIELD_RENDER, enabledVideoPatches);
+			drawSettingEntryString(page, &page_y_ofs, "Arreglar Centro de Pixeles:", fixPixelCenterStr[swissSettings.fixPixelCenter], option == SET_DEFAULT_PIXEL_CENTER, enabledVideoPatches);
 			drawSettingEntryBoolean(page, &page_y_ofs, "Desactivar Tramado Alfa:", swissSettings.disableDithering, option == SET_DEFAULT_ALPHA_DITHER, enabledVideoPatches);
 			drawSettingEntryBoolean(page, &page_y_ofs, "Forzar Filtro Anisotropico:", swissSettings.forceAnisotropy, option == SET_DEFAULT_ANISO_FILTER, true);
 			drawSettingEntryString(page, &page_y_ofs, "Forzar Pantalla Ancha:", forceWidescreenStr[swissSettings.forceWidescreen], option == SET_DEFAULT_WIDESCREEN, true);
 			drawSettingEntryString(page, &page_y_ofs, "Forzar Tasa de Sondeo:", forcePollRateStr[swissSettings.forcePollRate], option == SET_DEFAULT_POLL_RATE, true);
 			drawSettingEntryString(page, &page_y_ofs, "Invertir Stick de Camara:", invertCStickStr[swissSettings.invertCStick], option == SET_DEFAULT_INVERT_CAMERA, true);
-			drawSettingEntryString(page, &page_y_ofs, "Cambiar Stick de Camara:", swapCStickStr[swissSettings.swapCStick], option == SET_DEFAULT_SWAP_CAMERA, true);
 		} else {
+			drawSettingEntryString(page, &page_y_ofs, "Cambiar Stick de Camara:", swapCStickStr[swissSettings.swapCStick], option == SET_DEFAULT_SWAP_CAMERA, true);
 			sprintf(triggerLevelStr, "%hhu", swissSettings.triggerLevel);
-			drawSettingEntryString(page, &page_y_ofs, "Nivel de Trigger Digital:", triggerLevelStr, option == SET_DEFAULT_TRIGGER_LEVEL, true);
+			drawSettingEntryString(page, &page_y_ofs, "Nivel de Gatillo Digital:", triggerLevelStr, option == SET_DEFAULT_TRIGGER_LEVEL, true);
 			drawSettingEntryString(page, &page_y_ofs, "Emular Streaming de Audio:", emulateAudioStreamStr[swissSettings.emulateAudioStream], option == SET_DEFAULT_AUDIO_STREAM, emulatedAudioStream);
 			drawSettingEntryString(page, &page_y_ofs, "Emular Velocidad de Lectura:", emulateReadSpeedStr[swissSettings.emulateReadSpeed], option == SET_DEFAULT_READ_SPEED, emulatedReadSpeed);
 			drawSettingEntryBoolean(page, &page_y_ofs, "Emular Adaptador de Red:", swissSettings.emulateEthernet, option == SET_DEFAULT_EMULATE_ETHERNET, emulatedEthernet);
+			drawSettingEntryString(page, &page_y_ofs, "Desactivar Memory Card:", disableMemoryCardStr[swissSettings.disableMemoryCard], option == SET_DEFAULT_DISABLE_MEMCARD, enabledHypervisor);
+			drawSettingEntryBoolean(page, &page_y_ofs, "Desactivar Hypervisor:", swissSettings.disableHypervisor, option == SET_DEFAULT_DISABLE_HYPERVISOR, enabledCleanBoot);
 			drawSettingEntryBoolean(page, &page_y_ofs, "Preferir Inicio Limpio:", swissSettings.preferCleanBoot, option == SET_DEFAULT_CLEAN_BOOT, enabledCleanBoot);
+			drawSettingEntryNumeric(page, &page_y_ofs, "Perfil RetroTINK-4K:", swissSettings.rt4kProfile, option == SET_DEFAULT_RT4K_PROFILE, rt4kEnable);
+			drawSettingEntryString(page, &page_y_ofs, "Restablecer Ajustes", NULL, option == SET_DEFAULT_DEFAULTS, true);
 		}
 	}
 	else if(page_num == PAGE_GAME) {
@@ -358,53 +359,63 @@ uiDrawObj_t* settings_draw_page(int page_num, int option, ConfigEntry *gameConfi
 			bool emulatedAudioStream = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_AUDIO_STREAMING);
 			bool emulatedReadSpeed = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_READ_SPEED);
 			bool emulatedEthernet = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_ETHERNET);
-			bool enabledCleanBoot = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location == LOC_DVD_CONNECTOR);
-			if(option < SET_TRIGGER_LEVEL) {
+			bool enabledHypervisor = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->features & FEAT_HYPERVISOR);
+			bool enabledCleanBoot = devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location & LOC_DVD_CONNECTOR);
+			bool rt4kEnable = is_rt4k_alive();
+			if(option < SET_SWAP_CAMERA) {
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Modo de Video:", gameVModeStr[gameConfig->gameVMode], option == SET_FORCE_VIDEOMODE, enabledVideoPatches);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Escala Horizontal:", forceHScaleStr[gameConfig->forceHScale], option == SET_HORIZ_SCALE, enabledVideoPatches);
 				sprintf(forceVOffsetStr, "%+hi", gameConfig->forceVOffset);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Offset Vertical:", forceVOffsetStr, option == SET_VERT_OFFSET, enabledVideoPatches);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Filtro Vertical:", forceVFilterStr[gameConfig->forceVFilter], option == SET_VERT_FILTER, enabledVideoPatches);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Renderizado de Campo:", forceVJitterStr[gameConfig->forceVJitter], option == SET_FIELD_RENDER, enabledVideoPatches);
+				drawSettingEntryString(page, &page_y_ofs, "Arreglar Centro de Pixeles:", fixPixelCenterStr[gameConfig->fixPixelCenter], option == SET_PIXEL_CENTER, enabledVideoPatches);
 				drawSettingEntryBoolean(page, &page_y_ofs, "Desactivar Tramado Alfa:", gameConfig->disableDithering, option == SET_ALPHA_DITHER, enabledVideoPatches);
 				drawSettingEntryBoolean(page, &page_y_ofs, "Forzar Filtro Anisotropico:", gameConfig->forceAnisotropy, option == SET_ANISO_FILTER, true);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Pantalla Ancha:", forceWidescreenStr[gameConfig->forceWidescreen], option == SET_WIDESCREEN, true);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Tasa de Sondeo:", forcePollRateStr[gameConfig->forcePollRate], option == SET_POLL_RATE, true);
 				drawSettingEntryString(page, &page_y_ofs, "Invertir Stick de Camara:", invertCStickStr[gameConfig->invertCStick], option == SET_INVERT_CAMERA, true);
-				drawSettingEntryString(page, &page_y_ofs, "Cambiar Stick de Camara:", swapCStickStr[gameConfig->swapCStick], option == SET_SWAP_CAMERA, true);
 			} else {
+				drawSettingEntryString(page, &page_y_ofs, "Cambiar Stick de Camara:", swapCStickStr[gameConfig->swapCStick], option == SET_SWAP_CAMERA, true);
 				sprintf(triggerLevelStr, "%hhu", gameConfig->triggerLevel);
-				drawSettingEntryString(page, &page_y_ofs, "Nivel de Trigger Digital:", triggerLevelStr, option == SET_TRIGGER_LEVEL, true);
+				drawSettingEntryString(page, &page_y_ofs, "Nivel de Gatillo Digital:", triggerLevelStr, option == SET_TRIGGER_LEVEL, true);
 				drawSettingEntryString(page, &page_y_ofs, "Emular Streaming de Audio:", emulateAudioStreamStr[gameConfig->emulateAudioStream], option == SET_AUDIO_STREAM, emulatedAudioStream);
 				drawSettingEntryString(page, &page_y_ofs, "Emular Velocidad de Lectura:", emulateReadSpeedStr[gameConfig->emulateReadSpeed], option == SET_READ_SPEED, emulatedReadSpeed);
 				drawSettingEntryBoolean(page, &page_y_ofs, "Emular Adaptador de Red:", gameConfig->emulateEthernet, option == SET_EMULATE_ETHERNET, emulatedEthernet);
+				drawSettingEntryString(page, &page_y_ofs, "Desactivar Memory Card:", disableMemoryCardStr[gameConfig->disableMemoryCard], option == SET_DISABLE_MEMCARD, enabledHypervisor);
+				drawSettingEntryBoolean(page, &page_y_ofs, "Desactivar Hypervisor:", gameConfig->disableHypervisor, option == SET_DISABLE_HYPERVISOR, enabledCleanBoot);
 				drawSettingEntryBoolean(page, &page_y_ofs, "Preferir Inicio Limpio:", gameConfig->preferCleanBoot, option == SET_CLEAN_BOOT, enabledCleanBoot);
-				drawSettingEntryString(page, &page_y_ofs, "Restablecer ajustes por defecto", NULL, option == SET_DEFAULTS, true);
+				drawSettingEntryNumeric(page, &page_y_ofs, "Perfil RetroTINK-4K:", gameConfig->rt4kProfile, option == SET_RT4K_PROFILE, rt4kEnable);
+				drawSettingEntryString(page, &page_y_ofs, "Restablecer Ajustes", NULL, option == SET_DEFAULTS, true);
 			}
 		}
 		else {
 			// Just draw the defaults again
-			if(option < SET_TRIGGER_LEVEL) {
+			if(option < SET_SWAP_CAMERA) {
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Modo de Video:", gameVModeStr[swissSettings.gameVMode], option == SET_FORCE_VIDEOMODE, false);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Escala Horizontal:", forceHScaleStr[swissSettings.forceHScale], option == SET_HORIZ_SCALE, false);
 				sprintf(forceVOffsetStr, "%+hi", swissSettings.forceVOffset);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Offset Vertical:", forceVOffsetStr, option == SET_VERT_OFFSET, false);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Filtro Vertical:", forceVFilterStr[swissSettings.forceVFilter], option == SET_VERT_FILTER, false);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Renderizado de Campo:", forceVJitterStr[swissSettings.forceVJitter], option == SET_FIELD_RENDER, false);
+				drawSettingEntryString(page, &page_y_ofs, "Arreglar Centro de Pixeles:", fixPixelCenterStr[swissSettings.fixPixelCenter], option == SET_PIXEL_CENTER, false);
 				drawSettingEntryBoolean(page, &page_y_ofs, "Desactivar Tramado Alfa:", swissSettings.disableDithering, option == SET_ALPHA_DITHER, false);
 				drawSettingEntryBoolean(page, &page_y_ofs, "Forzar Filtro Anisotropico:", swissSettings.forceAnisotropy, option == SET_ANISO_FILTER, false);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Pantalla Ancha:", forceWidescreenStr[swissSettings.forceWidescreen], option == SET_WIDESCREEN, false);
 				drawSettingEntryString(page, &page_y_ofs, "Forzar Tasa de Sondeo:", forcePollRateStr[swissSettings.forcePollRate], option == SET_POLL_RATE, false);
 				drawSettingEntryString(page, &page_y_ofs, "Invertir Stick de Camara:", invertCStickStr[swissSettings.invertCStick], option == SET_INVERT_CAMERA, false);
-				drawSettingEntryString(page, &page_y_ofs, "Cambiar Stick de Camara:", swapCStickStr[swissSettings.swapCStick], option == SET_SWAP_CAMERA, false);
 			} else {
+				drawSettingEntryString(page, &page_y_ofs, "Cambiar Stick de Camara:", swapCStickStr[swissSettings.swapCStick], option == SET_SWAP_CAMERA, false);
 				sprintf(triggerLevelStr, "%hhu", swissSettings.triggerLevel);
-				drawSettingEntryString(page, &page_y_ofs, "Nivel de Trigger Digital:", triggerLevelStr, option == SET_TRIGGER_LEVEL, false);
+				drawSettingEntryString(page, &page_y_ofs, "Nivel de Gatillo Digital:", triggerLevelStr, option == SET_TRIGGER_LEVEL, false);
 				drawSettingEntryString(page, &page_y_ofs, "Emular Streaming de Audio:", emulateAudioStreamStr[swissSettings.emulateAudioStream], option == SET_AUDIO_STREAM, false);
 				drawSettingEntryString(page, &page_y_ofs, "Emular Velocidad de Lectura:", emulateReadSpeedStr[swissSettings.emulateReadSpeed], option == SET_READ_SPEED, false);
 				drawSettingEntryBoolean(page, &page_y_ofs, "Emular Adaptador de Red:", swissSettings.emulateEthernet, option == SET_EMULATE_ETHERNET, false);
+				drawSettingEntryString(page, &page_y_ofs, "Desactivar Memory Card:", disableMemoryCardStr[swissSettings.disableMemoryCard], option == SET_DISABLE_MEMCARD, false);
+				drawSettingEntryBoolean(page, &page_y_ofs, "Desactivar Hypervisor:", swissSettings.disableHypervisor, option == SET_DISABLE_HYPERVISOR, false);
 				drawSettingEntryBoolean(page, &page_y_ofs, "Preferir Inicio Limpio:", swissSettings.preferCleanBoot, option == SET_CLEAN_BOOT, false);
-				drawSettingEntryString(page, &page_y_ofs, "Restablecer ajustes por defecto", NULL, option == SET_DEFAULTS, false);
+				drawSettingEntryNumeric(page, &page_y_ofs, "Perfil RetroTINK-4K:", swissSettings.rt4kProfile, option == SET_DEFAULT_RT4K_PROFILE, false);
+				drawSettingEntryString(page, &page_y_ofs, "Restablecer Ajustes", NULL, option == SET_DEFAULTS, false);
 			}
 		}
 	}
@@ -418,11 +429,14 @@ uiDrawObj_t* settings_draw_page(int page_num, int option, ConfigEntry *gameConfi
 void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfig) {
 	if(page == PAGE_GLOBAL) {
 		switch(option) {
+			case SET_SYS_BOOTMODE:
+				swissSettings.sramBoot ^= SYS_BOOT_PRODUCTION;
+			break;
 			case SET_SYS_SOUND:
-				swissSettings.sramStereo ^= 1;
+				swissSettings.sramStereo ^= SYS_SOUND_STEREO;
 			break;
 			case SET_SCREEN_POS:
-				if(swissSettings.aveCompat == 1) {
+				if(in_range(swissSettings.aveCompat, GCDIGITAL_COMPAT, GCVIDEO_COMPAT)) {
 					swissSettings.sramHOffset /= 2;
 					swissSettings.sramHOffset += direction;
 					swissSettings.sramHOffset *= 2;
@@ -434,10 +448,7 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 			break;
 			case SET_SYS_LANG:
 				swissSettings.sramLanguage += direction;
-				if(swissSettings.sramLanguage > SYS_LANG_DUTCH)
-					swissSettings.sramLanguage = SYS_LANG_ENGLISH;
-				if(swissSettings.sramLanguage < SYS_LANG_ENGLISH)
-					swissSettings.sramLanguage = SYS_LANG_DUTCH;
+				swissSettings.sramLanguage = ((s8)swissSettings.sramLanguage + SRAM_LANG_MAX) % SRAM_LANG_MAX;
 			break;
 			case SET_CONFIG_DEV:
 			{
@@ -481,11 +492,11 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 			break;
 			case SET_SWISS_VIDEOMODE:
 				swissSettings.uiVMode += direction;
-				swissSettings.uiVMode = (swissSettings.uiVMode + 5) % 5;
+				swissSettings.uiVMode = (swissSettings.uiVMode + 7) % 7;
 			break;
 			case SET_FILEBROWSER_TYPE:
 				swissSettings.fileBrowserType += direction;
-				swissSettings.fileBrowserType = (swissSettings.fileBrowserType + 3) % 3;
+				swissSettings.fileBrowserType = (swissSettings.fileBrowserType + BROWSER_MAX) % BROWSER_MAX;
 			break;
 			case SET_FILE_MGMT:
 				swissSettings.enableFileManagement ^=1;
@@ -501,7 +512,10 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 				swissSettings.hideUnknownFileTypes ^= 1;
 			break;
 			case SET_FLATTEN_DIR:
-				DrawGetTextEntry(ENTRYMODE_NUMERIC|ENTRYMODE_ALPHA, "Directorio Actual", &swissSettings.flattenDir, sizeof(swissSettings.flattenDir) - 1);
+				DrawGetTextEntry(ENTRYMODE_NUMERIC|ENTRYMODE_ALPHA, "Directorio Aplanado", &swissSettings.flattenDir, sizeof(swissSettings.flattenDir) - 1);
+			break;
+			case SET_INIT_DRIVE:
+				swissSettings.initDVDDriveAtStart ^= 1;
 			break;
 			case SET_STOP_MOTOR:
 				swissSettings.stopMotor ^= 1;
@@ -511,21 +525,41 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 			break;
 			case SET_AVE_COMPAT:
 				swissSettings.aveCompat += direction;
-				swissSettings.aveCompat = (swissSettings.aveCompat + 5) % 5;
+				swissSettings.aveCompat = (swissSettings.aveCompat + AVE_COMPAT_MAX) % AVE_COMPAT_MAX;
 			break;
 			case SET_FORCE_DTVSTATUS:
-				if(swissSettings.aveCompat < 3)
+				if(!in_range(swissSettings.aveCompat, AVE_N_DOL_COMPAT, AVE_P_DOL_COMPAT))
 					swissSettings.forceDTVStatus ^= 1;
 			break;
-			case SET_ENABLE_USBGECKODBG:
-				if(devices[DEVICE_CUR] != &__device_usbgecko && deviceHandler_getDeviceAvailable(&__device_usbgecko))
-					swissSettings.debugUSB ^= 1;
+			case SET_RT4K_OPTIM:
+				if(in_range(swissSettings.aveCompat, GCDIGITAL_COMPAT, GCVIDEO_COMPAT)) {
+					swissSettings.rt4kOptim ^= 1;
+					switch(swissSettings.aveCompat) {
+						case GCDIGITAL_COMPAT:
+							sprintf(txtbuffer, "En el menu \223Ajustes GCDigital\224,\nPon \223Use console DE\224 en %s.", swissSettings.rt4kOptim ? "Activado (4:3)" : "Desactivado");
+						break;
+						case GCVIDEO_COMPAT:
+							sprintf(txtbuffer, "En el menu \223Ajustes Avanzados\224 GCVideo\nEstablece \223Fix Resolution\224 en %s.", swissSettings.rt4kOptim ? "Desactivado" : "Activado");
+						break;
+					}
+					uiDrawObj_t *msgBox = DrawPublish(DrawMessageBox(D_INFO, txtbuffer));
+					wait_press_A();
+					DrawDispose(msgBox);
+				}
+			break;
+			case SET_ENABLE_USBGECKO:
+				swissSettings.enableUSBGecko += direction;
+				swissSettings.enableUSBGecko = (swissSettings.enableUSBGecko + USBGECKO_MAX) % USBGECKO_MAX;
+			break;
+			case SET_WAIT_USBGECKO:
+				swissSettings.waitForUSBGecko ^= 1;
 			break;
 		}
 		switch(option) {
 			case SET_SWISS_VIDEOMODE:
 			case SET_AVE_COMPAT:
 			case SET_FORCE_DTVSTATUS:
+			case SET_RT4K_OPTIM:
 			{
 				// Change Swiss video mode if it was modified.
 				GXRModeObj *forcedMode = getVideoModeFromSwissSetting(swissSettings.uiVMode);
@@ -590,13 +624,21 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 			case SET_SMB_PASS:
 				DrawGetTextEntry(ENTRYMODE_NUMERIC|ENTRYMODE_ALPHA|ENTRYMODE_MASKED, "Clave SMB", &swissSettings.smbPassword, sizeof(swissSettings.smbPassword) - 1);
 			break;
+			case SET_RT4K_HOSTIP:
+				DrawGetTextEntry(ENTRYMODE_IP, "IP Host RetroTINK-4K", &swissSettings.rt4kHostIp, sizeof(swissSettings.rt4kHostIp) - 1);
+			break;
+			case SET_RT4K_PORT:
+				DrawGetTextEntry(ENTRYMODE_NUMERIC, "Puerto RetroTINK-4K", &swissSettings.rt4kPort, 5);
+			break;
 		}
 	}
 	else if(page == PAGE_GAME_GLOBAL) {
 		switch(option) {
 			case SET_IGR:
-				swissSettings.igrType += direction;
-				swissSettings.igrType = (swissSettings.igrType + 3) % 3;
+				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->features & FEAT_HYPERVISOR)) {
+					swissSettings.igrType += direction;
+					swissSettings.igrType = (swissSettings.igrType + 3) % 3;
+				}
 			break;
 			case SET_BS2BOOT:
 				swissSettings.bs2Boot += direction;
@@ -609,7 +651,7 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_MEMCARD))
 					swissSettings.emulateMemoryCard ^= 1;
 			break;
-			case SET_ENABLE_MCPGAMEID:
+			case SET_DISABLE_MCPGAMEID:
 				swissSettings.disableMCPGameID += direction;
 				swissSettings.disableMCPGameID = (swissSettings.disableMCPGameID + 4) % 4;
 			break;
@@ -617,12 +659,13 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 				if(swissSettings.disableVideoPatches < 2)
 					swissSettings.forceVideoActive ^= 1;
 			break;
-			case SET_ENABLE_VIDPATCH:
+			case SET_DISABLE_VIDPATCH:
 				swissSettings.disableVideoPatches += direction;
 				swissSettings.disableVideoPatches = (swissSettings.disableVideoPatches + 3) % 3;
 			break;
 			case SET_PAUSE_AVOUTPUT:
-				swissSettings.pauseAVOutput ^=1;
+				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->features & FEAT_HYPERVISOR))
+					swissSettings.pauseAVOutput ^=1;
 			break;
 			case SET_ALL_CHEATS:
 				swissSettings.autoCheats ^=1;
@@ -630,6 +673,20 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 			case SET_WIIRDDBG:
 				if(devices[DEVICE_CUR] != &__device_usbgecko && deviceHandler_getDeviceAvailable(&__device_usbgecko))
 					swissSettings.wiirdDebug ^=1;
+			break;
+			case SET_GLOBAL_DEFAULTS:
+				if(direction == 0) {
+					swissSettings.igrType = 0;
+					swissSettings.bs2Boot = 0;
+					swissSettings.autoBoot = 0;
+					swissSettings.emulateMemoryCard = 0;
+					swissSettings.disableMCPGameID = 0;
+					swissSettings.forceVideoActive = 0;
+					swissSettings.disableVideoPatches = 0;
+					swissSettings.pauseAVOutput = 0;
+					swissSettings.autoCheats = 0;
+					swissSettings.wiirdDebug = 0;
+				}
 			break;
 		}
 	}
@@ -645,7 +702,7 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 							swissSettings.gameVMode = (swissSettings.gameVMode + 15) % 15;
 						}
 					}
-					else if(swissSettings.aveCompat != 0) {
+					else if(swissSettings.aveCompat != CMPV_DOL_COMPAT) {
 						while(in_range(swissSettings.gameVMode, 6, 7) || in_range(swissSettings.gameVMode, 13, 14)) {
 							swissSettings.gameVMode += direction;
 							swissSettings.gameVMode = (swissSettings.gameVMode + 15) % 15;
@@ -672,7 +729,13 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 			case SET_DEFAULT_FIELD_RENDER:
 				if(swissSettings.disableVideoPatches < 2) {
 					swissSettings.forceVJitter += direction;
-					swissSettings.forceVJitter = (swissSettings.forceVJitter + 3) % 3;
+					swissSettings.forceVJitter = (swissSettings.forceVJitter + 4) % 4;
+				}
+			break;
+			case SET_DEFAULT_PIXEL_CENTER:
+				if(swissSettings.disableVideoPatches < 2) {
+					swissSettings.fixPixelCenter += direction;
+					swissSettings.fixPixelCenter = (swissSettings.fixPixelCenter + 3) % 3;
 				}
 			break;
 			case SET_DEFAULT_ALPHA_DITHER:
@@ -718,9 +781,49 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_ETHERNET))
 					swissSettings.emulateEthernet ^= 1;
 			break;
+			case SET_DEFAULT_DISABLE_MEMCARD:
+				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->features & FEAT_HYPERVISOR)) {
+					swissSettings.disableMemoryCard += direction;
+					swissSettings.disableMemoryCard = (swissSettings.disableMemoryCard + 3) % 3;
+				}
+			break;
+			case SET_DEFAULT_DISABLE_HYPERVISOR:
+				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location & LOC_DVD_CONNECTOR))
+					swissSettings.disableHypervisor ^= 1;
+			break;
 			case SET_DEFAULT_CLEAN_BOOT:
-				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location == LOC_DVD_CONNECTOR))
+				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location & LOC_DVD_CONNECTOR))
 					swissSettings.preferCleanBoot ^= 1;
+			break;
+			case SET_DEFAULT_RT4K_PROFILE:
+				if(is_rt4k_alive()) {
+					swissSettings.rt4kProfile += direction;
+					swissSettings.rt4kProfile = (swissSettings.rt4kProfile + 13) % 13;
+				}
+			break;
+			case SET_DEFAULT_DEFAULTS:
+				if(direction == 0) {
+					swissSettings.gameVMode = 0;
+					swissSettings.forceHScale = 0;
+					swissSettings.forceVOffset = 0;
+					swissSettings.forceVFilter = 0;
+					swissSettings.forceVJitter = 0;
+					swissSettings.fixPixelCenter = 0;
+					swissSettings.disableDithering = 0;
+					swissSettings.forceAnisotropy = 0;
+					swissSettings.forceWidescreen = 0;
+					swissSettings.forcePollRate = 0;
+					swissSettings.invertCStick = 0;
+					swissSettings.swapCStick = 0;
+					swissSettings.triggerLevel = 0;
+					swissSettings.emulateAudioStream = 1;
+					swissSettings.emulateReadSpeed = 0;
+					swissSettings.emulateEthernet = 0;
+					swissSettings.disableMemoryCard = 0;
+					swissSettings.disableHypervisor = 0;
+					swissSettings.preferCleanBoot = 0;
+					swissSettings.rt4kProfile = 0;
+				}
 			break;
 		}
 	}
@@ -736,7 +839,7 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 							gameConfig->gameVMode = (gameConfig->gameVMode + 15) % 15;
 						}
 					}
-					else if(swissSettings.aveCompat != 0) {
+					else if(swissSettings.aveCompat != CMPV_DOL_COMPAT) {
 						while(in_range(gameConfig->gameVMode, 6, 7) || in_range(gameConfig->gameVMode, 13, 14)) {
 							gameConfig->gameVMode += direction;
 							gameConfig->gameVMode = (gameConfig->gameVMode + 15) % 15;
@@ -763,7 +866,13 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 			case SET_FIELD_RENDER:
 				if(swissSettings.disableVideoPatches < 2) {
 					gameConfig->forceVJitter += direction;
-					gameConfig->forceVJitter = (gameConfig->forceVJitter + 3) % 3;
+					gameConfig->forceVJitter = (gameConfig->forceVJitter + 4) % 4;
+				}
+			break;
+			case SET_PIXEL_CENTER:
+				if(swissSettings.disableVideoPatches < 2) {
+					gameConfig->fixPixelCenter += direction;
+					gameConfig->fixPixelCenter = (gameConfig->fixPixelCenter + 3) % 3;
 				}
 			break;
 			case SET_ALPHA_DITHER:
@@ -809,9 +918,25 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->emulable & EMU_ETHERNET))
 					gameConfig->emulateEthernet ^= 1;
 			break;
+			case SET_DISABLE_MEMCARD:
+				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->features & FEAT_HYPERVISOR)) {
+					gameConfig->disableMemoryCard += direction;
+					gameConfig->disableMemoryCard = (gameConfig->disableMemoryCard + 3) % 3;
+				}
+			break;
+			case SET_DISABLE_HYPERVISOR:
+				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location & LOC_DVD_CONNECTOR))
+					gameConfig->disableHypervisor ^= 1;
+			break;
 			case SET_CLEAN_BOOT:
-				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location == LOC_DVD_CONNECTOR))
+				if(devices[DEVICE_CUR] == NULL || (devices[DEVICE_CUR]->location & LOC_DVD_CONNECTOR))
 					gameConfig->preferCleanBoot ^= 1;
+			break;
+			case SET_RT4K_PROFILE:
+				if(is_rt4k_alive()) {
+					gameConfig->rt4kProfile += direction;
+					gameConfig->rt4kProfile = (gameConfig->rt4kProfile + 13) % 13;
+				}
 			break;
 			case SET_DEFAULTS:
 				if(direction == 0)
@@ -822,6 +947,7 @@ void settings_toggle(int page, int option, int direction, ConfigEntry *gameConfi
 }
 
 int show_settings(int page, int option, ConfigEntry *config) {
+	wait_network();
 	// Copy current settings to a temp copy in case the user cancels out
 	if(config != NULL) {
 		memcpy(&tempConfig, config, sizeof(ConfigEntry));
@@ -894,32 +1020,23 @@ int show_settings(int page, int option, ConfigEntry *config) {
 			if(option == settings_count_pp[page]-1) {
 				uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Guardando cambios\205"));
 				// Save settings to SRAM
-				swissSettings.sram60Hz = getTVFormat() != VI_PAL;
+				swissSettings.sram60Hz = getTVFormat() == VI_EURGB60;
 				swissSettings.sramProgressive = getScanMode() == VI_PROGRESSIVE;
-				if(swissSettings.aveCompat == 1) {
+				if(in_range(swissSettings.aveCompat, GCDIGITAL_COMPAT, GCVIDEO_COMPAT)) {
 					swissSettings.sramHOffset &= ~1;
 				}
 				VIDEO_SetAdjustingValues(swissSettings.sramHOffset, 0);
-				sram = __SYS_LockSram();
-				sram->display_offsetH = swissSettings.sramHOffset;
-				sram->ntd = swissSettings.sram60Hz ? (sram->ntd|0x40):(sram->ntd&~0x40);
-				sram->lang = swissSettings.sramLanguage;
-				sram->flags = swissSettings.sramProgressive ? (sram->flags|0x80):(sram->flags&~0x80);
-				sram->flags = swissSettings.sramStereo ? (sram->flags|0x04):(sram->flags&~0x04);
-				sram->flags = (swissSettings.sramVideo&0x03)|(sram->flags&~0x03);
-				__SYS_UnlockSram(1);
-				while(!__SYS_SyncSram());
-				sramex = __SYS_LockSramEx();
-				sramex->__padding0 = swissSettings.configDeviceId;
-				__SYS_UnlockSramEx(1);
-				while(!__SYS_SyncSram());
+				updateSRAM(&swissSettings, true);
+				// Update environment
+				setenv("AVE", aveCompatStr[swissSettings.aveCompat], 1);
 				// Update our .ini (in memory)
 				if(config != NULL) {
-					config_update_game(config, true);
-					DrawDispose(msgBox);
+					config_defaults(&tempConfig);
+					config_update_game(config, &tempConfig, true);
 				}
 				// flush settings to .ini
 				if(config_update_global(true)) {
+					rt4k_init();
 					DrawDispose(msgBox);
 					msgBox = DrawPublish(DrawMessageBox(D_INFO,"Configuracion Guardada!"));
 					sleep(1);
@@ -957,7 +1074,13 @@ int show_settings(int page, int option, ConfigEntry *config) {
 			}
 			if(page == PAGE_NETWORK && (in_range(option, SET_BBA_LOCALIP, SET_BBA_GATEWAY) ||
 										in_range(option, SET_FSP_HOSTIP,  SET_FTP_PASS) ||
-										in_range(option, SET_SMB_HOSTIP,  SET_SMB_PASS))) {
+										in_range(option, SET_SMB_HOSTIP,  SET_RT4K_PORT))) {
+				settings_toggle(page, option, 0, config);
+			}
+			if(page == PAGE_GAME_GLOBAL && option == SET_GLOBAL_DEFAULTS) {
+				settings_toggle(page, option, 0, config);
+			}
+			if(page == PAGE_GAME_DEFAULTS && option == SET_DEFAULT_DEFAULTS) {
 				settings_toggle(page, option, 0, config);
 			}
 			if(page == PAGE_GAME && option == SET_DEFAULTS) {

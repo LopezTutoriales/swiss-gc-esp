@@ -171,7 +171,7 @@ static void exi_read(unsigned index, uint32_t *value)
 			break;
 		#ifndef USB
 		case 5:
-			if (!dev && chan != *VAR_EXI_SLOT) {
+			if (!dev && chan != (*VAR_EXI_SLOT & 0xF)) {
 				if (exi.reg[chan].cpr & 0b01000000000000) {
 					if (EXI[chan][0] & 0b01000000000000)
 						exi_remove_device(chan);
@@ -228,7 +228,7 @@ static void exi_write(unsigned index, uint32_t value)
 
 			if (chan == EXI_CHANNEL_0) {
 				if ((dev | dev2) & ~(1 << EXI_DEVICE_0)) {
-					if (*VAR_EXI_SLOT == EXI_CHANNEL_0)
+					if (chan == (*VAR_EXI_SLOT & 0x3))
 						end_read();
 
 					EXI[chan][0] = (value & 0b10001111111100) | (EXI[chan][0] & 0b00010000000001);
@@ -353,7 +353,8 @@ static void exi_read(unsigned index, uint32_t *value)
 				mask |= 0b00000000000011;
 			if (chan == EXI_CHANNEL_0 && (dev & (1 << EXI_DEVICE_2)))
 				mask |= 0b00001111111100;
-			if (chan == *VAR_EXI_SLOT)
+			if (chan == (*VAR_EXI_SLOT & 0x0F) ||
+				chan == (*VAR_EXI_SLOT & 0xF0) >> 4)
 				mask |= 0b01000000000000;
 
 			*value = exi.reg[chan].cpr | (EXI[chan][0] & ~mask);
@@ -392,8 +393,8 @@ static void exi_write(unsigned index, uint32_t value)
 				mask |= 0b00000000000011;
 			if (chan == EXI_CHANNEL_0 && ((dev | dev2) & (1 << EXI_DEVICE_2))) {
 				mask |= 0b00001111111100;
-			} else if (chan == *VAR_EXI_SLOT) {
-				if ((dev | dev2) & (1 << EXI_DEVICE_0))
+			} else if (chan == *VAR_EXI_CPR >> 6) {
+				if ((dev | dev2) & *VAR_EXI_CPR >> 3)
 					mask |= 0b00001110000000;
 				if (~dev & dev2)
 					end_read();
@@ -459,7 +460,8 @@ static void exi_read(unsigned index, uint32_t *value)
 
 	switch (index % 5) {
 		case 0:
-			if (chan == *VAR_EXI_SLOT)
+			if (chan == (*VAR_EXI_SLOT & 0x0F) ||
+				chan == (*VAR_EXI_SLOT & 0xF0) >> 4)
 				mask |= 0b01000000000000;
 			#ifdef USB
 			if (chan == EXI_CHANNEL_1)
@@ -488,8 +490,8 @@ static void exi_write(unsigned index, uint32_t value)
 			dev2 = (value >> 7) & 0b111;
 
 			if (~dev & dev2) {
-				if (chan == *VAR_EXI_SLOT) {
-					if (dev2 & (1 << EXI_DEVICE_0))
+				if (chan == *VAR_EXI_CPR >> 6) {
+					if (dev2 & *VAR_EXI_CPR >> 3)
 						mask |= 0b00001110000000;
 					end_read();
 				}
@@ -664,7 +666,9 @@ OSAlarm cover_alarm;
 OSAlarm read_alarm;
 
 #ifndef DI_PASSTHROUGH
-#ifdef GCODE
+#ifdef FLIPPY
+bool flippy_push_queue(void *buffer, uint32_t length, uint32_t offset, uint32_t command, frag_callback callback);
+#elifdef GCODE
 bool gcode_push_queue(void *buffer, uint32_t length, uint32_t offset, uint64_t sector, uint32_t command, frag_callback callback);
 #endif
 
@@ -703,7 +707,14 @@ static void di_execute_command()
 			di.error = 0;
 			break;
 		}
-		#if defined GCODE && !defined DTK
+		#if defined FLIPPY && !defined DTK
+		case DI_CMD_AUDIO_STREAM:
+		case DI_CMD_REQUEST_AUDIO_STATUS:
+		{
+			flippy_push_queue(&di.reg.immbuf, di.reg.cmdbuf2, di.reg.cmdbuf1, di.reg.cmdbuf0, di_complete_transfer);
+			return;
+		}
+		#elif defined GCODE && !defined DTK
 		case DI_CMD_AUDIO_STREAM:
 		case DI_CMD_REQUEST_AUDIO_STATUS:
 		{
@@ -719,7 +730,7 @@ static void di_execute_command()
 					uint32_t offset = DVDRoundDown32KB(di.reg.cmdbuf1 << 2);
 					uint32_t length = DVDRoundDown32KB(di.reg.cmdbuf2);
 
-					if (!offset && !length) {
+					if (!length) {
 						dtk.stopping = true;
 					} else if (!dtk.stopping) {
 						dtk.next.start  = offset;
@@ -756,7 +767,11 @@ static void di_execute_command()
 		case DI_CMD_REQUEST_AUDIO_STATUS:
 		{
 			switch ((di.reg.cmdbuf0 >> 16) & 0x03) {
+				#ifndef DTK
 				case 0x00: result = dtk.playing; break;
+				#else
+				case 0x00: result = dtk.playing | !!fifo_size(&dtk.fifo); break;
+				#endif
 				case 0x01: result = DVDRoundDown32KB(dtk.current.position) >> 2; break;
 				case 0x02: result = DVDRoundDown32KB(dtk.current.start) >> 2; break;
 				case 0x03: result = dtk.current.length; break;
@@ -768,7 +783,7 @@ static void di_execute_command()
 		{
 			if (di.status == 0 && change_disc()) {
 				di_open_cover();
-				#ifndef GCODE
+				#if !defined FLIPPY && !defined GCODE
 				OSSetAlarm(&cover_alarm, OSSecondsToTicks(1.5), di_close_cover);
 				#endif
 			}
@@ -923,23 +938,24 @@ static void dsp_write(unsigned index, uint16_t value)
 			dsp.regs[index - 24] = value;
 
 			if ((value & 0x8000) && dsp.req.aima >= 0) {
-				void *buffer = OSPhysicalToUncached(dsp.reg.aima);
+				void *in = OSPhysicalToUncached(dsp.reg.aima);
 				int length = (dsp.reg.aibl & 0x7FFF) << 5;
 				int count = length / sizeof(sample_t);
+				void *out = in;
 
 				if (length <= sizeof(**dsp.buffer)) {
-					void *buffer2 = dsp.buffer[0];
+					out = dsp.buffer[0];
 					dsp.buffer[0] = dsp.buffer[1];
-					dsp.buffer[1] = buffer2;
-					buffer = memcpy(buffer2, buffer, length);
+					dsp.buffer[1] = out;
 				}
 
 				uint32_t aicr = AI[0];
 				uint32_t aivr = AI[1];
 
-				if (aicr & 0b0000001) mix_samples(buffer, &dtk.fifo, count, aicr & 0b1000000, aivr, aivr >> 8);
+				if (aicr & 0b0000001) mix_samples(out, in, &dtk.fifo, count, aicr & 0b1000000, aivr, aivr >> 8);
+				else if (out != in) out = memcpy(out, in, length);
 
-				DSP[12] = (intptr_t)buffer;
+				DSP[12] = (intptr_t)out;
 				DSP[13] = ((length >> 5) & 0x7FFF) | 0x8000;
 
 				dtk_fill_buffer();
@@ -1097,7 +1113,7 @@ static void pi_write(unsigned index, uint32_t value)
 			PI[index] = ((value << 2) & 0b100) | (value & ~0b100);
 			break;
 			#else
-			if (*VAR_DRIVE_PATCHED) {
+			if (*VAR_DRIVE_FLAGS & 0b0100) {
 				PI[index] = ((value << 2) & 0b100) | (value & ~0b100);
 
 				if (!di.reset && !(value & 0b100))

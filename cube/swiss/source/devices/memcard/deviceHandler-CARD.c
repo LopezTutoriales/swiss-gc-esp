@@ -15,6 +15,7 @@
 #include "gui/IPLFontWrite.h"
 #include "swiss.h"
 #include "main.h"
+#include "mcp.h"
 #include "images/gamecube_rgb.h"
 
 
@@ -40,6 +41,7 @@ static device_info initial_CARD_info[2];
 
 static unsigned char *sys_area[2] = {NULL, NULL};
 static int card_init[2] = {0,0};
+static u16 card_memsize[2] = {0,0};
 static u32 card_sectorsize[2] = {8192, 8192};
 static GCI *gciInfo;
 static bool isCopyGCIMode = 0;
@@ -74,23 +76,22 @@ char *cardError(int error_code) {
 
 
 int initialize_card(int slot) {
-	int slot_error = CARD_ERROR_READY, i = 0;
+	int slot_error = CARD_ERROR_READY;
   
 	if(!card_init[slot]) {
 		/* Pass company identifier and number */
 		CARD_Init ("SWIS", "S0");
 		if(!sys_area[slot]) sys_area[slot] = memalign(32,CARD_WORKAREA);
 		  
-		/* Lets try 50 times to mount it. Sometimes it takes a while */
-		for(i = 0; i<50; i++) {
+		while((slot_error = CARD_ProbeEx (slot, NULL, NULL)) == CARD_ERROR_BUSY);
+		if(slot_error == CARD_ERROR_READY) {
 			slot_error = CARD_Mount (slot, sys_area[slot], card_removed_cb);
 			if(slot_error == CARD_ERROR_READY) {
-				CARD_GetSectorSize (slot, &card_sectorsize[slot]);
-				break;
+				slot_error = CARD_GetSectorSize (slot, &card_sectorsize[slot]);
 			}
 		}
 	}
-	card_init[slot] = slot_error == CARD_ERROR_READY ? 1 : 0;
+	card_init[slot] = slot_error == CARD_ERROR_READY;
 	return slot_error;
 }
 
@@ -100,6 +101,7 @@ device_info* deviceHandler_CARD_info(file_handle* file) {
 }
 
 s32 deviceHandler_CARD_readDir(file_handle* ffile, file_handle** dir, u32 type){	
+	if(type != -1) return -1;
 
 	int num_entries = 1, ret = 0, i = 1, slot = (!strncmp((const char*)initial_CARDB.name, ffile->name, 7));
 	card_dir *memcard_dir = NULL;
@@ -118,7 +120,7 @@ s32 deviceHandler_CARD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 	/* Convert the Memory Card "file" data to fileBrowser_files */
 	*dir = calloc(num_entries, sizeof(file_handle));
 	concat_path((*dir)[0].name, ffile->name, "..");
-	(*dir)[0].fileAttrib = IS_SPECIAL;
+	(*dir)[0].fileType = IS_SPECIAL;
 
 	int usedSpace = 0;
 	ret = CARD_FindFirst (slot, memcard_dir, true);
@@ -130,9 +132,9 @@ s32 deviceHandler_CARD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 		}
 		memset(&(*dir)[i], 0, sizeof(file_handle));
 		concatf_path((*dir)[i].name, ffile->name, "%.*s", CARD_FILENAMELEN, memcard_dir->filename);
-		(*dir)[i].fileBase   = memcard_dir->fileno;
-		(*dir)[i].size       = memcard_dir->filelen;
-		(*dir)[i].fileAttrib = IS_FILE;
+		(*dir)[i].fileBase = memcard_dir->fileno;
+		(*dir)[i].size     = memcard_dir->filelen;
+		(*dir)[i].fileType = IS_FILE;
 		memcpy( (*dir)[i].other, memcard_dir, sizeof(card_dir));
 		usedSpace += (*dir)[i].size;
 		ret = CARD_FindNext (memcard_dir);
@@ -179,10 +181,10 @@ int CARD_ReadUnaligned(card_file *cardfile, void *buffer, unsigned int length, u
 	void *dst = buffer;
 	u8 *read_buffer = (u8*)memalign(32,card_sectorsize[slot]);
 	int ret = CARD_ERROR_READY;
-	print_gecko("Lectura no alineada dst %08X offset %08X long. %i\r\n", dst, offset, length);
+	print_debug("Lectura no alineada dst %08X offset %08X long. %i\n", dst, offset, length);
 	// Unaligned because we're in the middle of a sector, read partial
 	ret = CARD_Read(cardfile, read_buffer, card_sectorsize[slot], offset-(offset&0x1ff));
-	print_gecko("CARD_Read offset %08X long. %i\r\n", offset-(offset&0x1ff), card_sectorsize[slot]);
+	print_debug("Offset Lectura MC %08X long. %i\n", offset-(offset&0x1ff), card_sectorsize[slot]);
 	if(ret != CARD_ERROR_READY) {
 		free(read_buffer);
 		return ret;
@@ -195,10 +197,10 @@ int CARD_ReadUnaligned(card_file *cardfile, void *buffer, unsigned int length, u
 	length -= amountToCopy;
 	offset += amountToCopy;
 	if(length != 0) {
-		print_gecko("Offset restos de lectura no alineada %08X length %i\r\n", offset, length);
+		print_debug("Offset restos de lectura no alineada %08X length %i\n", offset, length);
 		// At least this will be aligned
 		ret = CARD_Read(cardfile, read_buffer, card_sectorsize[slot], offset);
-		print_gecko("CARD_Read offset %08X long. %i\r\n", offset, card_sectorsize[slot]);
+		print_debug("Offset Lectura MC %08X long. %i\n", offset, card_sectorsize[slot]);
 		if(ret != CARD_ERROR_READY) {
 			free(read_buffer);
 			return ret;
@@ -236,7 +238,7 @@ s32 deviceHandler_CARD_readFile(file_handle* file, void* buffer, u32 length){
 	// Open the file based on the slot & file name
 	ret = CARD_Open(slot,filename, &cardfile);
 
-	print_gecko("Intento de abrir: [%s] en ranura %s obtenida res: %i\r\n",filename, slot ? "B":"A", ret);
+	print_debug("Intento de abrir: [%s] en ranura %s obtenida res: %i\n",filename, slot ? "B":"A", ret);
 
 	if(ret != CARD_ERROR_READY)	return ret;
 
@@ -249,7 +251,7 @@ s32 deviceHandler_CARD_readFile(file_handle* file, void* buffer, u32 length){
 	u32 amountRead = 0;
 	// If this file was put here by swiss, then skip the first 8192 bytes
 	if(swissFile && !isCopyGCIMode) {
-		print_gecko("Archivo copiado de Swiss detectado, saltando icono\r\n");
+		print_debug("Archivo copiado de Swiss detectado, saltando icono\n");
 		file->offset += 8192;
 	}
 	if(isCopyGCIMode) {
@@ -278,7 +280,7 @@ s32 deviceHandler_CARD_readFile(file_handle* file, void* buffer, u32 length){
 	}
 	while(length > 0 && file->offset < file->size) {
 		int readsize = length > card_sectorsize[slot] ? card_sectorsize[slot] : length;
-		print_gecko("Necesita leer: [%i] bytes mas\r\n", length);
+		print_debug("Necesita leer: [%i] bytes mas\n", length);
 		
 		if(file->offset&0x1ff) {
 			ret = CARD_ReadUnaligned(&cardfile, read_buffer, card_sectorsize[slot], file->offset, slot);
@@ -286,9 +288,9 @@ s32 deviceHandler_CARD_readFile(file_handle* file, void* buffer, u32 length){
 		else {
 			ret = CARD_Read(&cardfile, read_buffer, card_sectorsize[slot], file->offset);
 			// Sometimes reads fail the first time stupidly, retry at least once.
-			print_gecko("Lectura: [%i] bytes ret [%i] desde offset [%i]\r\n",card_sectorsize[slot],ret, file->offset);
+			print_debug("Lectura: [%i] bytes ret [%i] desde offset [%i]\n",card_sectorsize[slot],ret, file->offset);
 			if(ret == CARD_ERROR_BUSY) {
-				print_gecko("Reintentar lectura\r\n");
+				print_debug("Reintentar lectura\n");
 				usleep(2000);
 				ret = CARD_Read(&cardfile, read_buffer, card_sectorsize[slot], file->offset);
 			}
@@ -350,17 +352,17 @@ s32 deviceHandler_CARD_writeFile(file_handle* file, const void* data, u32 length
 	// Open the file based on the slot & file name
 	ret = CARD_Open(slot,filename, &cardfile);
 
-	print_gecko("Intento de abrir: [%s] en ranura %s obtenida res: %i\r\n",filename, slot ? "B":"A", ret);
+	print_debug("Intento de abrir: [%s] en ranura %s obtenida res: %i\n",filename, slot ? "B":"A", ret);
 	
 	if(ret == CARD_ERROR_NOFILE) {
 		// If the file doesn't exist, create it.
 		ret = CARD_Create(slot, filename,adj_length,&cardfile);
-		print_gecko("Intento de crear: [%s] en ranura %s obtenida res: %i\r\n",filename, slot ? "B":"A", ret);
+		print_debug("Intento de crear: [%s] en ranura %s obtenida res: %i\n",filename, slot ? "B":"A", ret);
 		if(ret != CARD_ERROR_READY) {
 			return ret;
 		}
 		ret = CARD_Open(slot,filename, &cardfile);
-		print_gecko("Intento de abrir despues de crear: [%s] en ranura %s obtenida res: %i\r\n",filename, slot ? "B":"A", ret);
+		print_debug("Intento de abrir despues de crear: [%s] en ranura %s obtenida res: %i\n",filename, slot ? "B":"A", ret);
 	}
 	
 	if(ret != CARD_ERROR_READY) {
@@ -388,7 +390,7 @@ s32 deviceHandler_CARD_writeFile(file_handle* file, const void* data, u32 length
 		ret = CARD_Write(&cardfile, tmpBuffer+amount_written, card_sectorsize[slot], file->offset);
 		file->offset += card_sectorsize[slot];
 		amount_written += card_sectorsize[slot];
-		print_gecko("Intento de escritura: [%s] en ranura %s obtenida res: %i\r\n",filename, slot ? "B":"A", ret);
+		print_debug("Intento de escritura: [%s] en ranura %s obtenida res: %i\n",filename, slot ? "B":"A", ret);
 		if(ret != CARD_ERROR_READY) break;
 	}
 	
@@ -467,14 +469,10 @@ char getGCIRegion(const char *gameID)
 s32 deviceHandler_CARD_init(file_handle* file){
 	int slot = (!strncmp((const char*)initial_CARDB.name, file->name, 7));
 	file->status = initialize_card(slot);
-	s32 memSize = 0, sectSize = 0;
 	if(file->status == CARD_ERROR_READY) {
-		int ret = CARD_ProbeEx(slot,&memSize,&sectSize);
+		int ret = CARD_GetMemSize(slot, &card_memsize[slot]);
 		if(ret == CARD_ERROR_READY) {
-			initial_CARD_info[slot].totalSpace = (u64)(memSize<<17);
-		}
-		else {
-			print_gecko("CARD_ProbeEx fallo %i\r\n", ret);
+			initial_CARD_info[slot].totalSpace = (u64)(card_memsize[slot] << 20 >> 3);
 		}
 	}
 	initial_CARD_info[slot].freeSpace = 0LL;
@@ -507,7 +505,7 @@ s32 deviceHandler_CARD_deleteFile(file_handle* file) {
 		CARD_SetCompany((const char*)cd->company);
 		CARD_SetGamecode((const char*)cd->gamecode);
 	}
-	print_gecko("Borrando: %s de ranura %i\r\n", filename, slot);
+	print_debug("Borrando: %s de ranura %i\n", filename, slot);
 	
 	int ret = CARD_Delete(slot, filename);
 	if(ret != CARD_ERROR_READY) {
@@ -528,13 +526,31 @@ s32 deviceHandler_CARD_closeFile(file_handle* file) {
 }
 
 bool deviceHandler_CARD_test_a() {
-	s32 memSize = 0, sectSize = 0;
-	return ((initialize_card(0)==CARD_ERROR_READY) && (CARD_ProbeEx(0, &memSize,&sectSize)==CARD_ERROR_READY));
+	int ret;
+	while ((ret = CARD_ProbeEx(CARD_SLOTA, NULL, NULL)) == CARD_ERROR_BUSY);
+	if (ret == CARD_ERROR_READY) {
+		u32 id;
+
+		if (MCP_GetDeviceID(CARD_SLOTA, &id) == MCP_RESULT_READY)
+			__device_card_a.hwName = "MemCard PRO GC";
+		else
+			__device_card_a.hwName = "Memory Card";
+	}
+	return ret == CARD_ERROR_READY;
 }
 
 bool deviceHandler_CARD_test_b() {
-	s32 memSize = 0, sectSize = 0;
-	return ((initialize_card(1)==CARD_ERROR_READY) && (CARD_ProbeEx(1, &memSize,&sectSize)==CARD_ERROR_READY));
+	int ret;
+	while ((ret = CARD_ProbeEx(CARD_SLOTB, NULL, NULL)) == CARD_ERROR_BUSY);
+	if (ret == CARD_ERROR_READY) {
+		u32 id;
+
+		if (MCP_GetDeviceID(CARD_SLOTB, &id) == MCP_RESULT_READY)
+			__device_card_b.hwName = "MemCard PRO GC";
+		else
+			__device_card_b.hwName = "Memory Card";
+	}
+	return ret == CARD_ERROR_READY;
 }
 
 char* deviceHandler_CARD_status(file_handle* file) {

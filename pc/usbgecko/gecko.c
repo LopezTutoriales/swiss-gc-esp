@@ -53,12 +53,12 @@ int gecko_open (const char *dev) {
 	fd_gecko = open (dev, O_RDWR | O_NOCTTY | O_SYNC | O_NONBLOCK);
 
 	if (fd_gecko == -1) {
-			perror ("gecko_open");
+			perror ("gecko_abrir");
 			return 1;
 	}
 
 	if (fcntl (fd_gecko, F_SETFL, 0)) {
-			perror ("F_SETFL on serial port");
+			perror ("F_SETFL en puerto de serie");
 			return 1;
 	}
 
@@ -80,39 +80,39 @@ int gecko_open (const char *dev) {
 	// Open by Serial Number
 	status = FT_OpenEx("GECKUSB0", FT_OPEN_BY_SERIAL_NUMBER, &fthandle);
 	if(status != FT_OK) {
-		printf("Error: Couldn't connect to USB Gecko. Please check Installation\n");
+		printf("Error: Imposible conectar al USB Gecko. Comprueba la instalacion\n");
 		exit(0);
 	}
 	// Reset device			
 	status = FT_ResetDevice(fthandle);
 	if(status != FT_OK) {
-		printf("Error: Couldnt Reset Device %d\n",status);
+		printf("Error: Imposible Resetear Dispositivo %d\n",status);
 		FT_Close(fthandle);
 		exit(0);
 	}
 
 	status = FT_SetTimeouts(fthandle,0,0);	// 0 Second Timeout
 	if(status != FT_OK) {
-		printf("Error: Timeouts failed to set %d\n",status);
+		printf("Error: Fallo tiempo de espera para establecer %d\n",status);
 		FT_Close(fthandle);
 		exit(0);
 	}	
 	// Purge buffers		
 	status = FT_Purge(fthandle,FT_PURGE_RX);
 	if(status != FT_OK)	{
-		printf("Error: Problem clearing buffers %d\n",status);
+		printf("Error: Problema limpiando buffers %d\n",status);
 		FT_Close(fthandle);
 		exit(0);
 	}
 	status = FT_Purge(fthandle,FT_PURGE_TX);
 	if(status != FT_OK) {
-		printf("Error: Problem clearing buffers %d\n",status);
+		printf("Error: Problema limpiando buffers %d\n",status);
 		FT_Close(fthandle);
 		exit(0);
 	}
 	status = FT_SetUSBParameters(fthandle,65536,0);	// Set to 64K packet size (USB 2.0 Max)
 	if(status != FT_OK)	{
-		printf("Error: Couldnt Set USB Parameters %d\n",status);
+		printf("Error: Imposible establecer parametros %d para el USB\n",status);
 		FT_Close(fthandle);
 		exit(0);
 	}
@@ -160,7 +160,7 @@ int gecko_read (void *buf, size_t count) {
 
 		res = read (fd_gecko, buf, chunk);
 		if (res < 1) {
-			perror ("gecko_read");
+			perror ("gecko_leer");
 			return 1;
 		}
 		left -= res;
@@ -179,7 +179,7 @@ int gecko_read (void *buf, size_t count) {
 		status = FT_Read(fthandle, buf, chunk, &RxSent);	// Read in the data
 	
 		if (status != FT_OK) { // Check read ok
-			printf("Error: Read Error. Closing\n");
+			printf("Error: Error de Lectura. Cerrando\n");
 			FT_Close(fthandle);	// Close device as fatal error
 			exit(-1);
 		}
@@ -203,7 +203,7 @@ int gecko_write (void *buf, size_t count) {
 
 			res = write (fd_gecko, buf, chunk);
 			if (res < 1) {
-					perror ("gecko_write");
+					perror ("gecko_escribir");
 					return 1;
 			}
 
@@ -212,7 +212,7 @@ int gecko_write (void *buf, size_t count) {
 
 			// does this work with ftdi-sio?
 			if (tcdrain (fd_gecko)) {
-					perror ("gecko_drain");
+					perror ("gecko_drenar");
 					return 1;
 			}
 		usleep(100);
@@ -229,7 +229,7 @@ int gecko_write (void *buf, size_t count) {
 		status = FT_Write(fthandle, buf, chunk, &TxSent);	// Read in the data
 
 		if (status != FT_OK) {	// Check read ok
-			printf("Error: Write Error. Closing.\n");
+			printf("Error: Error de Escritura. Cerrando.\n");
 			FT_Close(fthandle);	// Close device as fatal error
 			exit(-1);
 		}

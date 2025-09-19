@@ -66,6 +66,8 @@ void usbgecko_lock_file(s32 lock) {
 		req.offset = 0;
 		req.size = 0;
 		usb_sendbuffer_safe(1, &req, sizeof(usb_data_req));
+		
+		served_file[0] = '\0';
 	}
 	else {
 		// Tell PC, I'm ready to read from a file
@@ -145,7 +147,6 @@ file_handle* usbgecko_get_entry() {
 			memset(&filehndl, 0, sizeof(file_handle));
 			memcpy(&filehndl, get_buffer(), offsetof(file_handle, lockCount));
 			filehndl.size = bswap32(filehndl.size);
-			filehndl.fileAttrib = bswap32(filehndl.fileAttrib);
 			return &filehndl;
 		}
 	}

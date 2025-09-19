@@ -83,7 +83,7 @@ void init_samba() {
 		return;
 	}
 	res = smbInit(&swissSettings.smbUser[0], &swissSettings.smbPassword[0], &swissSettings.smbShare[0], &swissSettings.smbServerIp[0]);
-	print_gecko("SmbInit %i \r\n",res);
+	print_debug("smbInit %i\n",res);
 	if(res) {
 		smb_initialized = 1;
 	}
@@ -97,13 +97,17 @@ s32 deviceHandler_SMB_readDir(file_handle* ffile, file_handle** dir, u32 type){
 	DIR* dp = opendir( ffile->name );
 	if(!dp) return -1;
 	struct dirent *entry;
+	#ifdef _DIRENT_HAVE_D_STAT
+	#define fstat entry->d_stat
+	#else
 	struct stat fstat;
+	#endif
 	
 	// Set everything up to read
 	int num_entries = 1, i = 1;
 	*dir = calloc(num_entries, sizeof(file_handle));
 	concat_path((*dir)[0].name, ffile->name, "..");
-	(*dir)[0].fileAttrib = IS_SPECIAL;
+	(*dir)[0].fileType = IS_SPECIAL;
 	
 	// Read each entry of the directory
 	do {
@@ -114,9 +118,6 @@ s32 deviceHandler_SMB_readDir(file_handle* ffile, file_handle** dir, u32 type){
 		}
 		// Do we want this one?
 		if((type == -1 || ((entry->d_type == DT_DIR) ? (type==IS_DIR) : (type==IS_FILE)))) {
-			if(entry->d_type == DT_REG) {
-				if(!checkExtension(entry->d_name)) continue;
-			}
 			// Make sure we have room for this one
 			if(i == num_entries){
 				++num_entries;
@@ -124,16 +125,32 @@ s32 deviceHandler_SMB_readDir(file_handle* ffile, file_handle** dir, u32 type){
 			}
 			memset(&(*dir)[i], 0, sizeof(file_handle));
 			if(concat_path((*dir)[i].name, ffile->name, entry->d_name) < PATHNAME_MAX
-				&& !stat((*dir)[i].name, &fstat) && fstat.st_size <= UINT32_MAX) {
-				(*dir)[i].size       = fstat.st_size;
-				(*dir)[i].fileAttrib = S_ISDIR(fstat.st_mode) ? IS_DIR : IS_FILE;
+				#ifndef _DIRENT_HAVE_D_STAT
+				&& !stat((*dir)[i].name, &fstat)
+				#endif
+				&& fstat.st_size <= UINT32_MAX) {
+				(*dir)[i].fileBase = fstat.st_ino;
+				(*dir)[i].size     = fstat.st_size;
+				(*dir)[i].fileType = S_ISDIR(fstat.st_mode) ? IS_DIR : IS_FILE;
 				++i;
 			}
 		}
 	} while(entry || errno == EOVERFLOW);
 	
+	#undef fstat
 	closedir(dp);
 	return i;
+}
+
+s32 deviceHandler_SMB_statFile(file_handle* file) {
+	struct stat fstat;
+	int ret = stat(file->name, &fstat);
+	if(ret == 0) {
+		file->fileBase = fstat.st_ino;
+		file->size     = fstat.st_size;
+		file->fileType = S_ISDIR(fstat.st_mode) ? IS_DIR : IS_FILE;
+	}
+	return ret;
 }
 
 s64 deviceHandler_SMB_seekFile(file_handle* file, s64 where, u32 type){
@@ -148,10 +165,9 @@ s32 deviceHandler_SMB_readFile(file_handle* file, void* buffer, u32 length){
 		file->fp = fopen(file->name, "rb");
 		if(!file->fp) return -1;
 		setbuf(file->fp, NULL);
-	}
-	if(file->size <= 0) {
 		fseek(file->fp, 0, SEEK_END);
 		file->size = ftell(file->fp);
+		file->fileType = IS_FILE;
 	}
 	
 	fseek(file->fp, file->offset, SEEK_SET);
@@ -165,6 +181,8 @@ s32 deviceHandler_SMB_writeFile(file_handle* file, const void* buffer, u32 lengt
 		file->fp = fopen(file->name, "wb");
 		if(!file->fp) return -1;
 		setbuf(file->fp, NULL);
+		file->size = 0;
+		file->fileType = IS_FILE;
 	}
 	
 	fseek(file->fp, file->offset, SEEK_SET);
@@ -174,14 +192,13 @@ s32 deviceHandler_SMB_writeFile(file_handle* file, const void* buffer, u32 lengt
 }
 
 s32 deviceHandler_SMB_init(file_handle* file) {
-	init_network();
 	// We need at least a share name and ip addr in the settings filled out
 	if(!strlen(&swissSettings.smbShare[0]) || !strlen(&swissSettings.smbServerIp[0])) {
 		file->status = E_CHECKCONFIG;
 		return EFAULT;
 	}
 
-	if(!net_initialized) {       //Init if we have to
+	if(!init_network()) {        //Init if we have to
 		file->status = E_NONET;
 		return EFAULT;
 	} 
@@ -220,7 +237,7 @@ s32 deviceHandler_SMB_deinit(file_handle* file) {
 
 s32 deviceHandler_SMB_deleteFile(file_handle* file) {
 	deviceHandler_SMB_closeFile(file);
-	if(file->fileAttrib == IS_DIR)
+	if(file->fileType == IS_DIR)
 		return rmdir(file->name);
 	else
 		return unlink(file->name);
@@ -229,7 +246,8 @@ s32 deviceHandler_SMB_deleteFile(file_handle* file) {
 s32 deviceHandler_SMB_renameFile(file_handle* file, char* name) {
 	deviceHandler_SMB_closeFile(file);
 	int ret = rename(file->name, name);
-	strcpy(file->name, name);
+	if(ret == 0)
+		strcpy(file->name, name);
 	return ret;
 }
 
@@ -238,20 +256,27 @@ s32 deviceHandler_SMB_makeDir(file_handle* dir) {
 }
 
 bool deviceHandler_SMB_test() {
-	char ifname[4];
-	if(if_indextoname(1, ifname)) {
-		if(ifname[0] == 'E') {
-			__device_smb.hwName = "ENC28J60";
+	__device_smb.hwName = bba_device_str;
+	__device_smb.location = bba_location;
+
+	switch (bba_exists(LOC_ANY)) {
+		case LOC_MEMCARD_SLOT_A:
+			__device_smb.deviceTexture = (textureImage){TEX_GCNET, 65, 84, 72, 88};
+			return true;
+		case LOC_MEMCARD_SLOT_B:
+			if (sdgecko_getDevice(1) == EXI_DEVICE_0)
+				__device_smb.deviceTexture = (textureImage){TEX_GCNET, 65, 84, 72, 88};
+			else
+				__device_smb.deviceTexture = (textureImage){TEX_ETH2GC, 64, 80, 64, 80};
+			return true;
+		case LOC_SERIAL_PORT_1:
+			__device_smb.deviceTexture = (textureImage){TEX_BBA, 140, 64, 140, 64};
+			return true;
+		case LOC_SERIAL_PORT_2:
 			__device_smb.deviceTexture = (textureImage){TEX_ETH2GC, 64, 80, 64, 80};
-			if(ifname[1] == '0')
-				__device_smb.location = LOC_MEMCARD_SLOT_A;
-			else if(ifname[1] == '1')
-				__device_smb.location = LOC_MEMCARD_SLOT_B;
-			else if(ifname[1] == '2')
-				__device_smb.location = LOC_SERIAL_PORT_2;
-		}
+			return true;
 	}
-	return net_initialized || bba_exists(LOC_ANY);
+	return net_initialized;
 }
 
 char* deviceHandler_SMB_status(file_handle* file) {
@@ -273,13 +298,13 @@ DEVICEHANDLER_INTERFACE __device_smb = {
 	.deviceDescription = "Configurable en los ajustes",
 	.deviceTexture = {TEX_BBA, 140, 64, 140, 64},
 	.features = FEAT_READ|FEAT_WRITE|FEAT_THREAD_SAFE,
-	.location = LOC_SERIAL_PORT_1,
 	.initial = &initial_SMB,
 	.test = deviceHandler_SMB_test,
 	.info = deviceHandler_SMB_info,
 	.init = deviceHandler_SMB_init,
 	.makeDir = deviceHandler_SMB_makeDir,
 	.readDir = deviceHandler_SMB_readDir,
+	.statFile = deviceHandler_SMB_statFile,
 	.seekFile = deviceHandler_SMB_seekFile,
 	.readFile = deviceHandler_SMB_readFile,
 	.writeFile = deviceHandler_SMB_writeFile,

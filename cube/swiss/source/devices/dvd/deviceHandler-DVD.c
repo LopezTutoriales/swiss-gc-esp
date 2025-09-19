@@ -14,6 +14,7 @@
 #include "gui/FrameBufferMagic.h"
 #include "gui/IPLFontWrite.h"
 #include "main.h"
+#include "flippy.h"
 #include "patcher.h"
 #include "dvd.h"
 #include "gcm.h"
@@ -80,19 +81,19 @@ char *dvd_error_str()
 	  strcat(&error_str[0]," Medio no presente / Tapa abierta");
 	  break;
 	case 0x030200:
-	  strcat(&error_str[0]," Buscar no completado");
+	  strcat(&error_str[0]," Busqueda incompleta");
 	  break;
 	case 0x031100:
 	  strcat(&error_str[0]," Error de lectura irrecuperable");
 	  break;
 	case 0x040800:
-	  strcat(&error_str[0]," Error protocolo de transf.");
+	  strcat(&error_str[0]," Error protocolo de transferencia");
 	  break;
 	case 0x052000:
 	  strcat(&error_str[0]," Comando no valido");
 	  break;
 	case 0x052001:
-	  strcat(&error_str[0]," Buffer de Audio no config.");
+	  strcat(&error_str[0]," Buffer de Audio no configurado");
 	  break;
 	case 0x052100:
 	  strcat(&error_str[0]," Bloque logico fuera de rango");
@@ -134,9 +135,9 @@ int initialize_disc(u32 streaming) {
 	{
 		// Reset WKF hard to allow for a real disc to be read if SD is removed
 		if(wkfDetected || (__wkfSpiReadId() != 0 && __wkfSpiReadId() != 0xFFFFFFFF)) {
-			print_gecko("Detectado Wiikey Fusion con ID FLash SPI: %08X\r\n",__wkfSpiReadId());
+			print_debug("Detectado Wiikey Fusion con ID FLash SPI: %08X\n",__wkfSpiReadId());
 			__wkfReset();
-			print_gecko("WKF RESET\r\n");
+			print_debug("WKF RESET\n");
 			wkfDetected = 1;
 		}
 
@@ -167,7 +168,7 @@ int initialize_disc(u32 streaming) {
 		}
 	}
 	else {  //Wii, in GC Mode
-		DVD_Reset(DVD_RESETHARD);
+		dvd_reset();
 		dvd_read_id();
 		if((streaming == ENABLE_AUDIO) || (streaming == DISABLE_AUDIO)) {
 			dvd_set_streaming(streaming);
@@ -267,11 +268,11 @@ s32 deviceHandler_DVD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 	//GCOS or Cobra MultiGame DVD Disc
 	if((dvdDiscTypeInt == COBRA_MULTIGAME_DISC)||(dvdDiscTypeInt == GCOSD5_MULTIGAME_DISC)||(dvdDiscTypeInt == GCOSD9_MULTIGAME_DISC)) {
 
-		print_gecko("Juego multi disco %i detectado\r\n", dvdDiscTypeInt);
+		print_debug("Juego multi disco %i detectado\n", dvdDiscTypeInt);
 		if(drive_status == NORMAL_MODE) {
 			// This means we're using a drivechip, so our multigame command will be different.
 			isXenoGC = 1;
-			print_gecko("Lector DVD no parcheado, chip ya presente.\r\n");
+			print_debug("Lector DVD no parcheado, chip ya presente.\n");
 		}
 		//Read in the whole table of offsets
 		tmpTable = (unsigned int*)memalign(32,MAX_MULTIGAME*4);
@@ -287,7 +288,7 @@ s32 deviceHandler_DVD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 				num_entries++;
 			}
 		}
-		print_gecko("%i entradas encontradas\r\n", num_entries);
+		print_debug("%i entradas encontradas\n", num_entries);
 
 		if(num_entries <= 0) { return num_entries; }
 		// malloc the directory structure
@@ -299,14 +300,14 @@ s32 deviceHandler_DVD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 			if(num > 0) {
 				(*dir)[num-1].size = tmpOffset - (*dir)[num-1].fileBase;
 			}
-			print_gecko("Base es %016llX es GC? %s\r\n", tmpOffset, isGC ? "si" : "no");
+			print_debug("Base es %016llX es GC? %s\n", tmpOffset, isGC ? "si" : "no");
 			if((tmpOffset%(isGC?0x8000:0x20000)==0) && (tmpOffset<(isGC?DISC_SIZE:WII_D9_SIZE))) {
 				DVD_Read(&tmpName[0],tmpOffset+32,64);
 				concatf_path((*dir)[num].name, ffile->name, "%.64s.gcm", &tmpName[0]);
 				(*dir)[num].fileBase = tmpOffset;
 				(*dir)[num].offset = 0;
 				(*dir)[num].size   = (isGC?DISC_SIZE:WII_D9_SIZE)-tmpOffset;
-				(*dir)[num].fileAttrib	 = IS_FILE;
+				(*dir)[num].fileType = IS_FILE;
 				(*dir)[num].meta = 0;
 				(*dir)[num].status = STATUS_NOT_MAPPED;
 				num++;
@@ -333,9 +334,9 @@ s32 deviceHandler_DVD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 			(*dir)[i].fileBase = (uint64_t)(((uint64_t)DVDToc->file[i].sector)*2048);
 			(*dir)[i].offset = 0;
 			(*dir)[i].size   = DVDToc->file[i].size;
-			(*dir)[i].fileAttrib	 = IS_FILE;
+			(*dir)[i].fileType = IS_FILE;
 			if(DVDToc->file[i].flags == 2)//on DVD, 2 is a dir
-			(*dir)[i].fileAttrib   = IS_DIR;
+			(*dir)[i].fileType = IS_DIR;
 			if((*dir)[i].name[strlen((*dir)[i].name)-1] == '/' )
 			(*dir)[i].name[strlen((*dir)[i].name)-1] = 0;	//get rid of trailing '/'
 			(*dir)[i].meta = 0;
@@ -347,7 +348,7 @@ s32 deviceHandler_DVD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 
 		if(strcmp((*dir)[0].name, ffile->name) == 0) {
 			concat_path((*dir)[0].name, ffile->name, "..");
-			(*dir)[0].fileAttrib = IS_SPECIAL;
+			(*dir)[0].fileType = IS_SPECIAL;
 		}
 		else if(dvdDiscTypeInt == ISO9660_GAMECUBE_DISC) {
 			DiskHeader *diskHeader = get_gcm_header(ffile);
@@ -355,11 +356,11 @@ s32 deviceHandler_DVD_readDir(file_handle* ffile, file_handle** dir, u32 type){
 
 			*dir = reallocarray(*dir, num_entries + 1, sizeof(file_handle));
 			memset(&(*dir)[num_entries], 0, sizeof(file_handle));
-			concatf_path((*dir)[num_entries].name, ffile->name, "%.64s.gcm", diskHeader->GameName);
+			concatf_path((*dir)[num_entries].name, ffile->name, "%.64s [%.6s].gcm", stripInvalidChars(diskHeader->GameName), diskHeader);
 			(*dir)[num_entries].fileBase = 0;
 			(*dir)[num_entries].offset = 0;
 			(*dir)[num_entries].size = DISC_SIZE;
-			(*dir)[num_entries].fileAttrib = IS_FILE;
+			(*dir)[num_entries].fileType = IS_FILE;
 			(*dir)[num_entries].meta = 0;
 			num_entries++;
 
@@ -378,8 +379,8 @@ s64 deviceHandler_DVD_seekFile(file_handle* file, s64 where, u32 type){
 }
 
 s32 deviceHandler_DVD_readFile(file_handle* file, void* buffer, u32 length){
-	//print_gecko("read: status:%08X dst:%08X ofs:%08X base:%08X len:%08X\r\n"
-	//						,file->status,(u32)buffer,file->offset,(u32)((file->fileBase) & 0xFFFFFFFF),length);
+	//print_debug("read: status:%08X dst:%08X ofs:%08X base:%08X len:%08X\n",
+	//	file->status,(u32)buffer,file->offset,(u32)((file->fileBase) & 0xFFFFFFFF),length);
 	if(file->size == 0) return 0;	// Don't read garbage
 	u64 actualOffset = file->fileBase+file->offset;
 
@@ -394,39 +395,39 @@ s32 deviceHandler_DVD_readFile(file_handle* file, void* buffer, u32 length){
 }
 
 s32 deviceHandler_DVD_setupFile(file_handle* file, file_handle* file2, ExecutableFile* filesToPatch, int numToPatch) {
+	int i;
+	file_frag *fragList = NULL;
+	u32 numFrags = 0;
+	
 	// Multi-Game disc audio streaming setup
 	if((dvdDiscTypeInt == COBRA_MULTIGAME_DISC)||(dvdDiscTypeInt == GCOSD5_MULTIGAME_DISC)||(dvdDiscTypeInt == GCOSD9_MULTIGAME_DISC)) {
 		if(swissSettings.audioStreaming && !isXenoGC) {
 			uiDrawObj_t *msgBox = DrawPublish(DrawProgressBar(true, 0, "Un momento, configurando streaming audio."));
 			dvd_motor_off();
-			print_gecko("Fijar extension %08X\r\n",dvd_get_error());
+			print_debug("Fijar extension %08X\n",dvd_get_error());
 			dvd_setextension();
-			print_gecko("Fijar extension - hecho\r\nDesbloquear %08X\r\n",dvd_get_error());
+			print_debug("Fijar extension - Hecho\nDesbloquear %08X\n",dvd_get_error());
 			dvd_unlock();
-			print_gecko("Desbloquear - hecho\r\nMotor depura. On %08X\r\n",dvd_get_error());
+			print_debug("Desbloquear - Hecho\nMotor depuracion encendido %08X\n",dvd_get_error());
 			dvd_motor_on_extra();
-			print_gecko("Motor depura. On - done\r\nFijar Estado %08X\r\n",dvd_get_error());
+			print_debug("Motor depuracion encendido - Hecho\nFijar Estado %08X\n",dvd_get_error());
 			dvd_setstatus();
-			print_gecko("Fijar Estado - hecho %08X\r\n",dvd_get_error());
+			print_debug("Fijar Estado - Hecho %08X\n",dvd_get_error());
 			dvd_read_id();
-			print_gecko("ID Lectura %08X\r\n",dvd_get_error());
+			print_debug("ID Lectura %08X\n",dvd_get_error());
 			dvd_set_streaming(swissSettings.audioStreaming);
 			DrawDispose(msgBox);
 		}
 		dvd_set_offset(file->fileBase);
 		file->status = STATUS_MAPPED;
-		print_gecko("Streaming %s %08X\r\n",swissSettings.audioStreaming?"activado":"desactivado",dvd_get_error());
+		print_debug("Streaming %s %08X\n",swissSettings.audioStreaming?"Activado":"Desactivado",dvd_get_error());
 	}
-	if(numToPatch < 0) {
+	if(numToPatch < 0 || !devices[DEVICE_CUR]->emulated()) {
 		return 1;
 	}
 	// Check if there are any fragments in our patch location for this game
 	if(devices[DEVICE_PATCHES] != NULL) {
-		int i;
-		file_frag *fragList = NULL;
-		u32 numFrags = 0;
-		
-		print_gecko("Aparato guardar parche encont.\r\n");
+		print_debug("Aparato guardar parche encontrado\n");
 		
 		// Look for patch files, if we find some, open them and add them as fragments
 		file_handle patchFile;
@@ -450,22 +451,9 @@ s32 deviceHandler_DVD_setupFile(file_handle* file, file_handle* file2, Executabl
 			}
 		}
 		
-		if(swissSettings.igrType == IGR_BOOTBIN || endsWith(file->name,".tgc")) {
+		if(swissSettings.igrType == IGR_APPLOADER || endsWith(file->name,".tgc")) {
 			memset(&patchFile, 0, sizeof(file_handle));
 			concat_path(patchFile.name, devices[DEVICE_PATCHES]->initial->name, "swiss/patches/apploader.img");
-			
-			ApploaderHeader apploaderHeader;
-			if(devices[DEVICE_PATCHES]->readFile(&patchFile, &apploaderHeader, sizeof(ApploaderHeader)) != sizeof(ApploaderHeader) || apploaderHeader.rebootSize != reboot_bin_size) {
-				devices[DEVICE_PATCHES]->deleteFile(&patchFile);
-				
-				memset(&apploaderHeader, 0, sizeof(ApploaderHeader));
-				apploaderHeader.rebootSize = reboot_bin_size;
-				
-				devices[DEVICE_PATCHES]->seekFile(&patchFile, 0, DEVICE_HANDLER_SEEK_SET);
-				devices[DEVICE_PATCHES]->writeFile(&patchFile, &apploaderHeader, sizeof(ApploaderHeader));
-				devices[DEVICE_PATCHES]->writeFile(&patchFile, reboot_bin, reboot_bin_size);
-				devices[DEVICE_PATCHES]->closeFile(&patchFile);
-			}
 			
 			getFragments(DEVICE_PATCHES, &patchFile, &fragList, &numFrags, FRAGS_APPLOADER, 0x2440, 0);
 			devices[DEVICE_PATCHES]->closeFile(&patchFile);
@@ -476,17 +464,17 @@ s32 deviceHandler_DVD_setupFile(file_handle* file, file_handle* file2, Executabl
 				memset(&patchFile, 0, sizeof(file_handle));
 				concatf_path(patchFile.name, devices[DEVICE_PATCHES]->initial->name, "swiss/patches/MemoryCardA.%s.raw", wodeRegionToString(GCMDisk.RegionCode));
 				concatf_path(txtbuffer, devices[DEVICE_PATCHES]->initial->name, "swiss/saves/MemoryCardA.%s.raw", wodeRegionToString(GCMDisk.RegionCode));
-				ensure_path(DEVICE_PATCHES, "swiss/saves", NULL);
+				ensure_path(DEVICE_PATCHES, "swiss/saves", NULL, false);
 				devices[DEVICE_PATCHES]->renameFile(&patchFile, txtbuffer);	// TODO remove this in our next major release
 				
-				if(devices[DEVICE_PATCHES]->readFile(&patchFile, NULL, 0) != 0) {
+				if(devices[DEVICE_PATCHES]->statFile(&patchFile)) {
 					devices[DEVICE_PATCHES]->seekFile(&patchFile, 16*1024*1024, DEVICE_HANDLER_SEEK_SET);
 					devices[DEVICE_PATCHES]->writeFile(&patchFile, NULL, 0);
 					devices[DEVICE_PATCHES]->closeFile(&patchFile);
 				}
 				
 				if(getFragments(DEVICE_PATCHES, &patchFile, &fragList, &numFrags, FRAGS_CARD_A, 0, 31.5*1024*1024))
-					*(vu8*)VAR_CARD_A_ID = (patchFile.size * 8/1024/1024) & 0xFC;
+					*(vu8*)VAR_CARD_A_ID = (patchFile.size << 3 >> 20) & 0xFC;
 				devices[DEVICE_PATCHES]->closeFile(&patchFile);
 			}
 			
@@ -494,17 +482,17 @@ s32 deviceHandler_DVD_setupFile(file_handle* file, file_handle* file2, Executabl
 				memset(&patchFile, 0, sizeof(file_handle));
 				concatf_path(patchFile.name, devices[DEVICE_PATCHES]->initial->name, "swiss/patches/MemoryCardB.%s.raw", wodeRegionToString(GCMDisk.RegionCode));
 				concatf_path(txtbuffer, devices[DEVICE_PATCHES]->initial->name, "swiss/saves/MemoryCardB.%s.raw", wodeRegionToString(GCMDisk.RegionCode));
-				ensure_path(DEVICE_PATCHES, "swiss/saves", NULL);
+				ensure_path(DEVICE_PATCHES, "swiss/saves", NULL, false);
 				devices[DEVICE_PATCHES]->renameFile(&patchFile, txtbuffer);	// TODO remove this in our next major release
 				
-				if(devices[DEVICE_PATCHES]->readFile(&patchFile, NULL, 0) != 0) {
+				if(devices[DEVICE_PATCHES]->statFile(&patchFile)) {
 					devices[DEVICE_PATCHES]->seekFile(&patchFile, 16*1024*1024, DEVICE_HANDLER_SEEK_SET);
 					devices[DEVICE_PATCHES]->writeFile(&patchFile, NULL, 0);
 					devices[DEVICE_PATCHES]->closeFile(&patchFile);
 				}
 				
 				if(getFragments(DEVICE_PATCHES, &patchFile, &fragList, &numFrags, FRAGS_CARD_B, 0, 31.5*1024*1024))
-					*(vu8*)VAR_CARD_B_ID = (patchFile.size * 8/1024/1024) & 0xFC;
+					*(vu8*)VAR_CARD_B_ID = (patchFile.size << 3 >> 20) & 0xFC;
 				devices[DEVICE_PATCHES]->closeFile(&patchFile);
 			}
 		}
@@ -516,14 +504,17 @@ s32 deviceHandler_DVD_setupFile(file_handle* file, file_handle* file2, Executabl
 			fragList = NULL;
 		}
 		
-		int slot = GET_SLOT(devices[DEVICE_PATCHES]->initial);
-		// Card Type
-		*(vu8*)VAR_SD_SHIFT = sdgecko_getAddressingType(slot) ? 0:9;
-		// Copy the actual freq
-		*(vu8*)VAR_EXI_FREQ = sdgecko_getSpeed(slot);
-		// Device slot (0, 1 or 2)
-		*(vu8*)VAR_EXI_SLOT = slot;
-		*(vu32**)VAR_EXI_REGS = ((vu32(*)[5])0xCC006800)[slot];
+		s32 exi_channel, exi_device;
+		if(getExiDeviceByLocation(devices[DEVICE_PATCHES]->location, &exi_channel, &exi_device)) {
+			exi_device = sdgecko_getDevice(exi_channel);
+			// Card Type
+			*(vu8*)VAR_SD_SHIFT = sdgecko_getAddressingType(exi_channel) ? 0:9;
+			// Copy the actual freq
+			*(vu8*)VAR_EXI_CPR = (exi_channel << 6) | ((1 << exi_device) << 3) | sdgecko_getSpeed(exi_channel);
+			// Device slot (0, 1 or 2)
+			*(vu8*)VAR_EXI_SLOT = (*(vu8*)VAR_EXI_SLOT & 0xF0) | (((exi_device << 2) | exi_channel) & 0x0F);
+			*(vu32**)VAR_EXI_REGS = ((vu32(*)[5])0xCC006800)[exi_channel];
+		}
 	}
 	
 	if(file2 && file2->meta)
@@ -533,11 +524,15 @@ s32 deviceHandler_DVD_setupFile(file_handle* file, file_handle* file2, Executabl
 }
 
 s32 deviceHandler_DVD_init(file_handle* file){
+	if(devices[DEVICE_CUR] == &__device_flippy || devices[DEVICE_CUR] == &__device_flippyflash) {
+		return EBUSY;
+	}
+	if(swissSettings.hasFlippyDrive) flippy_bypass(true);
 	if(!swissSettings.hasDVDDrive) return ENODEV;
 	
 	file->status = initialize_disc(ENABLE_BYDISK);
 	dvd_init = file->status != DRV_ERROR;
-	return !dvd_init;
+	return dvd_init ? 0 : EIO;
 }
 
 s32 deviceHandler_DVD_deinit(file_handle* file) {
@@ -555,7 +550,41 @@ s32 deviceHandler_DVD_closeFile(file_handle* file){
 }
 
 bool deviceHandler_DVD_test() {
-	return swissSettings.hasDVDDrive != 0;
+	if (!swissSettings.hasDVDDrive)
+		return false;
+
+	if (*DVDDeviceCode & 0x8000) {
+		switch (*DVDDeviceCode & ~0x8000) {
+			case 0x0000:
+				__device_dvd.hwName = "Lector NROM";
+				break;
+			case 0x0001:
+				__device_dvd.hwName = "Lector NR";
+				break;
+			case 0x0002:
+				__device_dvd.hwName = "Lector RVL-ROM";
+				break;
+			case 0x0003:
+				__device_dvd.hwName = "Lector RVL-R";
+				break;
+			case 0x0200:
+				__device_dvd.hwName = "Lector NPDP";
+				break;
+			case 0x0201:
+				__device_dvd.hwName = "GDEV";
+				break;
+			case 0x0202:
+				__device_dvd.hwName = "NDEV";
+				break;
+			case 0x0203:
+				__device_dvd.hwName = "Lector RVL-H";
+				break;
+			default:
+				__device_dvd.hwName = "Desconocido";
+				break;
+		}
+	}
+	return *DVDDeviceCode != 0x0001;
 }
 
 u32 deviceHandler_DVD_emulated() {
@@ -564,8 +593,12 @@ u32 deviceHandler_DVD_emulated() {
 			return EMU_READ | EMU_MEMCARD | EMU_BUS_ARBITER;
 		else
 			return EMU_READ | EMU_BUS_ARBITER;
-	} else
-		return EMU_READ;
+	} else {
+		if (swissSettings.disableHypervisor)
+			return EMU_NONE;
+		else
+			return EMU_READ;
+	}
 }
 
 char* deviceHandler_DVD_status(file_handle* file) {
@@ -580,11 +613,12 @@ char* deviceHandler_DVD_status(file_handle* file) {
 
 DEVICEHANDLER_INTERFACE __device_dvd = {
 	.deviceUniqueId = DEVICE_ID_0,
-	.hwName = "Lector DVD",
+	.hwName = "Lector NROM",
 	.deviceName = "DVD",
 	.deviceDescription = "Formato(s) soportado(s): GCM, ISO 9660, Multi-Juego",
 	.deviceTexture = {TEX_GCDVDSMALL, 84, 84, 84, 84},
 	.features = FEAT_READ|FEAT_BOOT_GCM|FEAT_BOOT_DEVICE|FEAT_HYPERVISOR|FEAT_AUDIO_STREAMING,
+	.quirks = QUIRK_NO_DEINIT,
 	.emulable = EMU_READ|EMU_MEMCARD,
 	.location = LOC_DVD_CONNECTOR,
 	.initial = &initial_DVD,

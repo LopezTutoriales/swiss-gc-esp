@@ -3,6 +3,7 @@
 	by emu_kidid
  */
 
+#include <fnmatch.h>
 #include <stdio.h>
 #include <ogcsys.h>
 #include <unistd.h>
@@ -159,13 +160,13 @@ void populate_game_meta(file_handle *f, u32 bannerOffset, u32 bannerSize) {
 	f->meta->banner = memalign(32,BNR_PIXELDATA_LEN);
 	memcpy(f->meta->banner,blankbanner.pixelData,BNR_PIXELDATA_LEN);
 	if(bannerOffset == -1 || bannerOffset + bannerSize > f->size) {
-		print_gecko("Banner no encontrado o fuera de rango\r\n");
+		print_debug("Banner no encontrado o fuera de rango\n");
 	}
 	else if(bannerSize) {
 		BNR *banner = memalign(32, bannerSize);
 		devices[DEVICE_CUR]->seekFile(f, bannerOffset, DEVICE_HANDLER_SEEK_SET);
 		if(devices[DEVICE_CUR]->readFile(f, banner, bannerSize) != bannerSize) {
-			print_gecko("Leer banner fallo %i desde offset %08X\r\n", bannerSize, bannerOffset);
+			print_debug("Leer banner fallo %i desde offset %08X\n", bannerSize, bannerOffset);
 		}
 		else {
 			if(!memcmp(banner->magic, "BNR1", 4)) {
@@ -211,7 +212,20 @@ void populate_meta(file_handle *f) {
 	// If the meta hasn't been created, lets read it.
 	if(!f->meta && (f->meta = meta_alloc())) {
 		// File detection (GCM, DOL, MP3 etc)
-		if(f->fileAttrib==IS_FILE) {
+		if(f->fileType==IS_FILE) {
+			if(endsWith(f->name,".dol"))
+				f->meta->fileTypeTexObj = &dolimgTexObj;
+			else if(endsWith(f->name,".dol+cli"))
+				f->meta->fileTypeTexObj = &dolcliimgTexObj;
+			else if(endsWith(f->name,".elf"))
+				f->meta->fileTypeTexObj = &elfimgTexObj;
+			else if(endsWith(f->name,".fpkg"))
+				f->meta->fileTypeTexObj = &fpkgimgTexObj;
+			else if(endsWith(f->name,".mp3"))
+				f->meta->fileTypeTexObj = &mp3imgTexObj;
+			else
+				f->meta->fileTypeTexObj = &fileimgTexObj;
+			
 			if(devices[DEVICE_CUR] == &__device_wode && f->status == STATUS_NOT_MAPPED) {
 				f->meta->bannerSum = 0xFFFF;
 				f->meta->bannerSize = BNR_PIXELDATA_LEN;
@@ -227,6 +241,7 @@ void populate_meta(file_handle *f) {
 					f->meta->regionTexObj = &ntscuTexObj;
 				else if(region == 'P')
 					f->meta->regionTexObj = &palTexObj;
+				f->meta->fileTypeTexObj = &gcmimgTexObj;
 				f->meta->displayName = strncpy(f->meta->bannerDesc.fullGameName, isoInfo->name, BNR_FULL_TEXT_LEN);
 			}
 			else if(devices[DEVICE_CUR] == &__device_card_a || devices[DEVICE_CUR] == &__device_card_b) {
@@ -276,7 +291,7 @@ void populate_meta(file_handle *f) {
 					}
 				}
 			}
-			else if(endsWith(f->name,".gcm") || endsWith(f->name,".iso")) {
+			else if(endsWith(f->name,".fdi") || endsWith(f->name,".gcm") || endsWith(f->name,".iso")) {
 				DiskHeader *diskHeader = get_gcm_header(f);
 				if(diskHeader) {
 					u32 bannerOffset = 0, bannerSize = f->size;
@@ -292,6 +307,7 @@ void populate_meta(file_handle *f) {
 						f->meta->regionTexObj = &ntscuTexObj;
 					else if(region == 'P')
 						f->meta->regionTexObj = &palTexObj;
+					f->meta->fileTypeTexObj = &gcmimgTexObj;
 					memcpy(&f->meta->diskId, diskHeader, sizeof(dvddiskid));
 					free(diskHeader);
 				}
@@ -301,6 +317,7 @@ void populate_meta(file_handle *f) {
 				devices[DEVICE_CUR]->seekFile(f, 0, DEVICE_HANDLER_SEEK_SET);
 				if(devices[DEVICE_CUR]->readFile(f, &tgcHeader, sizeof(TGCHeader)) == sizeof(TGCHeader) && tgcHeader.magic == TGC_MAGIC) {
 					populate_game_meta(f, tgcHeader.bannerStart, tgcHeader.bannerLength);
+					f->meta->fileTypeTexObj = &tgcimgTexObj;
 				}
 			}
 			else if(endsWith(f->name,"/default.dol")) {
@@ -315,18 +332,11 @@ void populate_meta(file_handle *f) {
 				devices[DEVICE_CUR]->closeFile(bannerFile);
 				free(bannerFile);
 			}
-			if(endsWith(f->name,".dol"))
-				f->meta->fileTypeTexObj = &dolimgTexObj;
-			else if(endsWith(f->name,".dol+cli"))
-				f->meta->fileTypeTexObj = &dolcliimgTexObj;
-			else if(endsWith(f->name,".elf"))
-				f->meta->fileTypeTexObj = &elfimgTexObj;
-			else if(endsWith(f->name,".mp3"))
-				f->meta->fileTypeTexObj = &mp3imgTexObj;
-			else
-				f->meta->fileTypeTexObj = &fileimgTexObj;
+			if(devices[DEVICE_CUR] == &__device_flippy || devices[DEVICE_CUR] == &__device_flippyflash) {
+				devices[DEVICE_CUR]->closeFile(f);
+			}
 		}
-		else if (f->fileAttrib == IS_DIR) {
+		else if (f->fileType == IS_DIR) {
 			f->meta->fileTypeTexObj = &dirimgTexObj;
 			
 			file_handle *bannerFile = calloc(1, sizeof(file_handle));
@@ -343,8 +353,32 @@ void populate_meta(file_handle *f) {
 				if (devices[DEVICE_CUR]->readFile(bootFile, NULL, 0) == 0 && bootFile->size) {
 					devices[DEVICE_CUR]->closeFile(bootFile);
 					
-					f = memcpy(f, bootFile, sizeof(file_handle));
+					f = memcpy(f, bootFile, offsetof(file_handle, uiObj));
 					f->meta->fileTypeTexObj = &dolimgTexObj;
+				}
+				devices[DEVICE_CUR]->closeFile(bootFile);
+				free(bootFile);
+			} else if (!fnmatch("*/apps", f->name, FNM_PATHNAME | FNM_CASEFOLD))
+				f->meta->displayName = "Applications";
+			 else if (!fnmatch("*/games", f->name, FNM_PATHNAME | FNM_CASEFOLD))
+				f->meta->displayName = "Games";
+			if (!fnmatch("*/apps/*", f->name, FNM_PATHNAME | FNM_CASEFOLD)) {
+				file_handle *bootFile = calloc(1, sizeof(file_handle));
+				concat_path(bootFile->name, f->name, "boot.dol");
+				bootFile->meta = f->meta;
+				
+				if (devices[DEVICE_CUR]->readFile(bootFile, NULL, 0) == 0 && bootFile->size) {
+					devices[DEVICE_CUR]->closeFile(bootFile);
+					
+					concatf_path(bootFile->name, f->name, "%s.dol", getRelativeName(f->name));
+					bootFile->size = 0;
+					
+					if (devices[DEVICE_CUR]->readFile(bootFile, NULL, 0) == 0 && bootFile->size) {
+						devices[DEVICE_CUR]->closeFile(bootFile);
+						
+						f = memcpy(f, bootFile, offsetof(file_handle, uiObj));
+						f->meta->fileTypeTexObj = &dolimgTexObj;
+					}
 				}
 				devices[DEVICE_CUR]->closeFile(bootFile);
 				free(bootFile);
@@ -352,7 +386,7 @@ void populate_meta(file_handle *f) {
 			devices[DEVICE_CUR]->closeFile(bannerFile);
 			free(bannerFile);
 		}
-		else if (f->fileAttrib == IS_SPECIAL) {
+		else if (f->fileType == IS_SPECIAL) {
 			f->meta->displayName = "Ir a directorio principal";
 		}
 	}
@@ -366,7 +400,7 @@ void repopulate_meta(file_handle *f) {
 
 file_handle* meta_find_disc2(file_handle *f) {
 	file_handle* disc2File = NULL;
-	if(is_multi_disc(f->meta)) {
+	if(is_multi_disc(f->meta) && !(devices[DEVICE_CUR]->quirks & QUIRK_GCLOADER_NO_DISC_2)) {
 		file_handle* dirEntries = getCurrentDirEntries();
 		int dirEntryCount = getCurrentDirEntryCount();
 		for(int i = 0; i < 2; i++) {
@@ -404,7 +438,8 @@ file_handle* meta_find_disc2(file_handle *f) {
 	return disc2File;
 }
 
-static void *meta_thread_func(void *arg) {
+static void *meta_thread_func(void *loadingBox) {
+	DrawUpdateProgressLoading(loadingBox, +1);
 	file_handle *dirEntries = getCurrentDirEntries();
 	int dirEntryCount = getCurrentDirEntryCount();
 	for (int i = 0; i < dirEntryCount; i++) {
@@ -414,12 +449,13 @@ static void *meta_thread_func(void *arg) {
 			unlockFile(&dirEntries[i]);
 		}
 	}
+	DrawUpdateProgressLoading(loadingBox, -1);
 	return NULL;
 }
 
-void meta_thread_start() {
+void meta_thread_start(void *loadingBox) {
 	if (devices[DEVICE_CUR]->features & FEAT_THREAD_SAFE)
-		LWP_CreateThread(&meta_thread, meta_thread_func, NULL, NULL, 16*1024, LWP_PRIO_NORMAL);
+		LWP_CreateThread(&meta_thread, meta_thread_func, loadingBox, NULL, 16*1024, LWP_PRIO_NORMAL);
 }
 
 void meta_thread_stop() {
